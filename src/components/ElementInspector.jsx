@@ -151,10 +151,11 @@ function ColorPicker({ value, onChange, label }) {
           {pickerOpen && (
             <div
               ref={pickerRef}
-              className="fixed z-[100] w-52 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl"
-              style={{ left: `${position.x}px`, top: `${position.y}px` }}
+              className="fixed z-[9999] w-52 rounded-2xl border-4 border-red-500 bg-white p-3 shadow-xl"
+              style={{ left: `${position.x}px`, top: `${position.y}px`, backgroundColor: 'white' }}
               onMouseDown={(e) => e.stopPropagation()}
             >
+              <div className="text-red-500 font-bold text-sm mb-2">PICKER IS OPEN!</div>
                 <div
                   className="relative mb-3 h-36 w-full cursor-crosshair overflow-hidden rounded-xl"
                   style={{
