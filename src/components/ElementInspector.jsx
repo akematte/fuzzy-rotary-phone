@@ -35,6 +35,7 @@ function ColorPicker({ value, onChange, label }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [hsv, setHsv] = useState({ h: 0, s: 100, v: 100 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [hexInput, setHexInput] = useState(value);
 
   useEffect(() => {
     if (!value.startsWith("#")) return;
@@ -53,6 +54,7 @@ function ColorPicker({ value, onChange, label }) {
       }
     }
     setHsv({ h: h * 360, s: max === 0 ? 0 : (d / max) * 100, v: max * 100 });
+    setHexInput(value.toUpperCase());
   }, [value]);
 
   useEffect(() => {
@@ -91,11 +93,34 @@ function ColorPicker({ value, onChange, label }) {
     const rgb = hsvToRgb(newHsv.h, newHsv.s, newHsv.v);
     const hex = "#" + [rgb.r, rgb.g, rgb.b].map(x => x.toString(16).padStart(2, "0")).join("");
     onChange(hex);
+    setHexInput(hex.toUpperCase());
+  };
+
+  const handleHexInputChange = (e) => {
+    const val = e.target.value;
+    setHexInput(val);
+    if (/^#[0-9A-F]{6}$/i.test(val)) {
+      const r = parseInt(val.substr(1, 2), 16) / 255;
+      const g = parseInt(val.substr(3, 2), 16) / 255;
+      const b = parseInt(val.substr(5, 2), 16) / 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b);
+      const d = max - min;
+      let h = 0;
+      if (max !== min) {
+        switch (max) {
+          case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+          case g: h = ((b - r) / d + 2) / 6; break;
+          case b: h = ((r - g) / d + 4) / 6; break;
+        }
+      }
+      setHsv({ h: h * 360, s: max === 0 ? 0 : (d / max) * 100, v: max * 100 });
+      onChange(val);
+    }
   };
 
   const handleClick = (e) => {
     e.stopPropagation();
-    // Position at top-right of cursor
+    setHexInput(value.toUpperCase());
     setPosition({ x: e.clientX + 10, y: e.clientY - 290 });
     setPickerOpen(true);
   };
@@ -163,8 +188,14 @@ function ColorPicker({ value, onChange, label }) {
             <div className="absolute top-0 h-full w-1 -translate-x-1/2 rounded-full bg-white" style={{ left: `${(hsv.h / 360) * 100}%` }} />
           </div>
           <div className="mb-3 flex items-center gap-2">
-            <div className="h-8 w-8 flex-1 rounded-lg border" style={{ backgroundColor: value }} />
-            <span className="w-20 text-xs font-mono">{value.toUpperCase()}</span>
+            <div className="h-8 w-8 flex-none rounded-lg border" style={{ backgroundColor: hexInput }} />
+            <input
+              type="text"
+              value={hexInput}
+              onChange={handleHexInputChange}
+              className="flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1 text-xs font-mono uppercase outline-none focus:border-black focus:ring-1 focus:ring-black"
+              placeholder="#000000"
+            />
           </div>
           <button onClick={() => setPickerOpen(false)} className="w-full rounded-xl bg-black px-3 py-2 text-xs font-medium text-white">Done</button>
         </div>,
