@@ -124,12 +124,10 @@ export default function Element({
 
   const interacting = dragging || resizing;
   const layoutTransition = {
-    type: "spring",
-    stiffness: interacting ? 560 : 340,
-    damping: interacting ? 38 : 30,
-    mass: interacting ? 0.38 : 0.68,
-    restDelta: 0.2,
-    restSpeed: 0.2
+    x: { type: "spring", stiffness: interacting ? 700 : 400, damping: interacting ? 35 : 25, mass: 0.5 },
+    y: { type: "spring", stiffness: interacting ? 700 : 400, damping: interacting ? 35 : 25, mass: 0.5 },
+    width: { type: "spring", stiffness: interacting ? 500 : 300, damping: interacting ? 30 : 20, mass: 0.5 },
+    height: { type: "spring", stiffness: interacting ? 500 : 300, damping: interacting ? 30 : 20, mass: 0.5 }
   };
 
   const handleMouseDown = (e) => {
@@ -210,13 +208,17 @@ export default function Element({
         height: element.height
       }}
       transition={layoutTransition}
-      className={`absolute rounded-2xl border ${
-        selected ? "border-black shadow-soft" : "border-transparent"
+      className={`absolute ${
+        selected ? "shadow-soft" : ""
       } ${element.type === "shape" ? "bg-transparent" : "bg-white"}`}
-      style={{ cursor: dragging ? "grabbing" : "grab" }}
+      style={{ 
+        cursor: dragging ? "grabbing" : "grab",
+        borderRadius: element.type === "shape" ? (element.style?.shape === "circle" ? "50%" : element.style?.shape === "pill" ? "9999px" : `${element.style?.borderRadius ?? 16}px`) : "16px",
+        border: selected ? "2px solid black" : "2px solid transparent"
+      }}
       onMouseDown={handleMouseDown}
     >
-      <div className="absolute inset-0 overflow-hidden rounded-2xl">
+      <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: element.type === "shape" ? (element.style?.shape === "circle" ? "50%" : element.style?.shape === "pill" ? "9999px" : `${element.style?.borderRadius ?? 16}px`) : "16px" }}>
         {element.type === "text" ? (
           <div
             contentEditable

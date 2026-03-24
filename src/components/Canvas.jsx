@@ -82,8 +82,14 @@ export default function Canvas({
     }
   };
 
-  const handleZoomIn = () => setZoom((z) => Math.min(z + 0.1, 2));
-  const handleZoomOut = () => setZoom((z) => Math.max(z - 0.1, 0.5));
+  const handleZoomIn = () => {
+    setZoom((z) => Math.min(z + 0.1, 2));
+  };
+  
+  const handleZoomOut = () => {
+    setZoom((z) => Math.max(z - 0.1, 0.5));
+  };
+  
   const handleReset = () => {
     setZoom(1);
     setPan({ x: 0, y: 0 });
@@ -103,18 +109,13 @@ export default function Canvas({
 
   return (
     <div className="relative h-full overflow-hidden" style={{ backgroundColor: bg.color }} onMouseDown={handlePanMouseDown} onContextMenu={handleCanvasContextMenu}>
-      <motion.div
-        animate={{ x: pan.x, y: pan.y, scale: zoom }}
-        transition={{
-          type: "spring",
-          stiffness: panning ? 620 : 280,
-          damping: panning ? 40 : 32,
-          mass: panning ? 0.32 : 0.55,
-          restDelta: 0.15,
-          restSpeed: 0.15
+      <div
+        style={{ 
+          transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
+          transformOrigin: '0 0',
+          ...patternStyle
         }}
         className={`relative h-[2200px] w-[3200px] ${panning ? "cursor-grabbing" : "cursor-default"}`}
-        style={patternStyle}
       >
         {(page?.elements ?? []).map((element) => (
           <div key={element.id} data-element data-element-id={element.id} className="absolute left-0 top-0">
