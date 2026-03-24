@@ -125,8 +125,9 @@ function ColorPicker({ value, onChange, label }) {
     <div className="flex flex-col gap-2">
       <span className="text-xs font-medium text-neutral-600">{label}</span>
       <div className="flex flex-wrap items-center gap-1.5">
-        <div className="relative" ref={pickerRef}>
+        <div className="relative">
           <motion.button
+            ref={buttonRef}
             type="button"
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.98 }}
