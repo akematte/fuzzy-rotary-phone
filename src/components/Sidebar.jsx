@@ -1,32 +1,9 @@
 import { motion } from "framer-motion";
-import { ChevronLeft, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 
-export default function Sidebar({
-  pages,
-  activePageId,
-  collapsed,
-  onToggle,
-  onNewPage,
-  onSelectPage
-}) {
+export default function Sidebar({ pages, activePageId, collapsed, onNewPage, onSelectPage }) {
   return (
-    <motion.aside
-      animate={{ width: collapsed ? 74 : 280 }}
-      transition={{ type: "spring", stiffness: 260, damping: 28 }}
-      className="h-full border-r border-neutral-200 bg-white px-3 py-4"
-    >
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className={`text-xl font-semibold tracking-tight ${collapsed ? "hidden" : "block"}`}>Scrapbook</h1>
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.96 }}
-          onClick={onToggle}
-          className="rounded-xl border border-neutral-200 bg-white p-2 transition hover:bg-neutral-50"
-        >
-          <ChevronLeft className={`h-4 w-4 transition ${collapsed ? "rotate-180" : ""}`} />
-        </motion.button>
-      </div>
-
+    <>
       <motion.button
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
@@ -55,6 +32,6 @@ export default function Sidebar({
           );
         })}
       </div>
-    </motion.aside>
+    </>
   );
 }

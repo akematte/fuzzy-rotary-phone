@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { fitShapeBox } from "../lib/shapeFit";
 
 const STORAGE_KEY = "scrapbook-data-v1";
 
@@ -18,7 +19,7 @@ const createTextElement = () => ({
   width: 260,
   height: 120,
   content: "Double click to edit",
-  style: { fontSize: 20, bold: false, italic: false }
+  style: { fontSize: 20, bold: false, italic: false, color: "#171717", background: "transparent" }
 });
 
 const createImageElement = (src) => ({
@@ -28,7 +29,26 @@ const createImageElement = (src) => ({
   y: 180,
   width: 280,
   height: 220,
-  src
+  src,
+  style: { borderRadius: 16, borderWidth: 0, borderColor: "#292524" }
+});
+
+const createShapeElement = () => ({
+  id: uid(),
+  type: "shape",
+  x: 220,
+  y: 160,
+  width: 200,
+  height: 200,
+  style: {
+    shape: "rectangle",
+    fill: "#fde68a",
+    stroke: "#292524",
+    strokeWidth: 2,
+    borderRadius: 24,
+    opacity: 1,
+    shadow: true
+  }
 });
 
 const saveState = (state) => {
@@ -117,6 +137,14 @@ export const useScrapbookStore = create((set, get) => {
         }))
       })),
 
+    addShapeElement: () =>
+      get().commit((state) => ({
+        pages: updatePageById(state.pages, state.activePageId, (p) => ({
+          ...p,
+          elements: [...p.elements, createShapeElement()]
+        }))
+      })),
+
     updateElement: (elementId, patch) =>
       get().commit((state) => ({
         pages: updatePageById(state.pages, state.activePageId, (p) => ({
@@ -125,15 +153,45 @@ export const useScrapbookStore = create((set, get) => {
         }))
       })),
 
-    updateTextStyle: (elementId, stylePatch) =>
+    patchElementStyle: (elementId, stylePatch) =>
       get().commit((state) => ({
         pages: updatePageById(state.pages, state.activePageId, (p) => ({
           ...p,
           elements: p.elements.map((el) =>
-            el.id === elementId ? { ...el, style: { ...el.style, ...stylePatch } } : el
+            el.id === elementId
+              ? { ...el, style: { ...(el.style ?? {}), ...stylePatch } }
+              : el
           )
         }))
       })),
+
+    patchShapeWithFit: (elementId, shape) => {
+      const state = get();
+      const pageId = state.activePageId;
+      const page = state.pages.find((p) => p.id === pageId);
+      const el = page?.elements.find((e) => e.id === elementId);
+      if (!el || el.type !== "shape") return;
+      get().commit((s) => ({
+        pages: updatePageById(s.pages, pageId, (p) => ({
+          ...p,
+          elements: p.elements.map((e) => {
+            if (e.id !== elementId) return e;
+            const b = fitShapeBox(e, shape);
+            return { ...e, ...b, style: { ...(e.style ?? {}), shape } };
+          })
+        }))
+      }));
+    },
+
+    importBoard: (payload) => {
+      if (!payload?.pages || !Array.isArray(payload.pages) || payload.pages.length === 0) return false;
+      get().commit(() => ({
+        pages: payload.pages,
+        activePageId: payload.activePageId ?? payload.pages[0]?.id ?? null,
+        selectedElementId: null
+      }));
+      return true;
+    },
 
     undo: () => {
       const state = get();

@@ -1,9 +1,111 @@
 import { motion } from "framer-motion";
+import { ArrowDownRight, ArrowUpLeft } from "lucide-react";
 import { useRef, useState } from "react";
 
 const GRID = 12;
 
 const snap = (value) => Math.round(value / GRID) * GRID;
+
+const morphEase = [0.33, 0, 0.2, 1];
+const morphDuration = 0.48;
+
+const colorTween = { type: "spring", stiffness: 320, damping: 28 };
+
+function ShapeContent({ element }) {
+  const st = element.style ?? {};
+  const kind = st.shape ?? "rectangle";
+  const isPoly = kind === "triangle" || kind === "diamond";
+  const fill = st.fill ?? "#fde68a";
+  const stroke = st.stroke ?? "#292524";
+  const sw = st.strokeWidth ?? 2;
+  const opacity = st.opacity ?? 1;
+  const r = st.borderRadius ?? 16;
+  const shadow = st.shadow !== false;
+
+  const borderRadius = kind === "circle" ? "50%" : kind === "pill" ? "9999px" : `${r}px`;
+  const boxShadow = shadow ? "0 12px 28px rgba(0,0,0,0.12)" : "none";
+
+  const points = kind === "triangle" ? "50,6 94,94 6,94" : "50,6 94,50 50,94 6,50";
+
+  return (
+    <div className="relative h-full w-full">
+      <motion.div
+        className="absolute inset-0 flex items-stretch"
+        initial={false}
+        animate={{
+          opacity: isPoly ? 0 : 1,
+          scale: isPoly ? 0.92 : 1
+        }}
+        transition={{ duration: morphDuration * 0.72, ease: morphEase }}
+        style={{ pointerEvents: "none" }}
+      >
+        <motion.div
+          className="h-full w-full"
+          style={{ borderStyle: "solid", boxSizing: "border-box" }}
+          initial={false}
+          animate={{
+            backgroundColor: fill,
+            borderColor: stroke,
+            borderWidth: sw,
+            opacity,
+            boxShadow,
+            borderRadius
+          }}
+          transition={{
+            borderRadius: { duration: morphDuration, ease: morphEase },
+            backgroundColor: colorTween,
+            borderColor: colorTween,
+            borderWidth: { duration: 0.25 },
+            opacity: { duration: 0.28 },
+            boxShadow: { duration: 0.35 }
+          }}
+        />
+      </motion.div>
+
+      <motion.div
+        className="absolute inset-0"
+        initial={false}
+        animate={{
+          opacity: isPoly ? 1 : 0,
+          scale: isPoly ? 1 : 0.92
+        }}
+        transition={{ duration: morphDuration * 0.72, ease: morphEase }}
+        style={{ pointerEvents: "none" }}
+      >
+        <svg
+          className="h-full w-full"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          style={{ filter: shadow ? "drop-shadow(0 10px 18px rgba(0,0,0,0.14))" : undefined }}
+        >
+          {(kind === "triangle" || kind === "diamond") && (
+            <motion.polygon
+              key={kind}
+              points={points}
+              vectorEffect="nonScalingStroke"
+              strokeLinejoin="round"
+              initial={{ opacity: 0.85 }}
+              animate={{
+                opacity,
+                fill,
+                stroke,
+                strokeWidth: sw,
+                points
+              }}
+              transition={{
+                opacity: { duration: morphDuration * 0.5, ease: morphEase },
+                points: { duration: morphDuration, ease: morphEase },
+                fill: colorTween,
+                stroke: colorTween,
+                strokeWidth: { duration: 0.25 }
+              }}
+            />
+          )}
+        </svg>
+      </motion.div>
+    </div>
+  );
+}
 
 export default function Element({
   element,
@@ -16,7 +118,18 @@ export default function Element({
   onDragEnd
 }) {
   const [dragging, setDragging] = useState(false);
+  const [resizing, setResizing] = useState(false);
   const dragStartRef = useRef(null);
+
+  const interacting = dragging || resizing;
+  const layoutTransition = {
+    type: "spring",
+    stiffness: interacting ? 560 : 340,
+    damping: interacting ? 38 : 30,
+    mass: interacting ? 0.38 : 0.68,
+    restDelta: 0.2,
+    restSpeed: 0.2
+  };
 
   const handleMouseDown = (e) => {
     if (e.target.closest("[data-resize-handle]")) return;
@@ -46,6 +159,7 @@ export default function Element({
   const startResize = (event, handle) => {
     event.stopPropagation();
     onSelect(element.id);
+    setResizing(true);
     const start = {
       x: event.clientX,
       y: event.clientY,
@@ -74,69 +188,91 @@ export default function Element({
       onResize(element.id, next);
     };
 
-    const onMouseUp = () => {
+    const onMouseUpResize = () => {
+      setResizing(false);
       window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
+      window.removeEventListener("mouseup", onMouseUpResize);
     };
 
     window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
+    window.addEventListener("mouseup", onMouseUpResize);
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{
         opacity: 1,
         x: element.x,
         y: element.y,
         width: element.width,
-        height: element.height,
-        scale: dragging ? 1.02 : 1
+        height: element.height
       }}
-      transition={{ type: "spring", stiffness: 260, damping: 28 }}
+      transition={layoutTransition}
       className={`absolute rounded-2xl border ${
         selected ? "border-black shadow-soft" : "border-transparent"
-      } bg-white`}
+      } ${element.type === "shape" ? "bg-transparent" : "bg-white"}`}
       style={{ cursor: dragging ? "grabbing" : "grab" }}
       onMouseDown={handleMouseDown}
     >
-      {element.type === "text" ? (
-        <div
-          contentEditable
-          suppressContentEditableWarning
-          onDoubleClick={(e) => e.stopPropagation()}
-          onBlur={(e) => onTextChange(element.id, e.currentTarget.innerText)}
-          className="h-full w-full overflow-auto rounded-2xl p-4 outline-none"
-          style={{
-            fontSize: `${element.style?.fontSize ?? 16}px`,
-            fontWeight: element.style?.bold ? 700 : 400,
-            fontStyle: element.style?.italic ? "italic" : "normal"
-          }}
-        >
-          {element.content}
-        </div>
-      ) : (
-        <img
-          src={element.src}
-          alt="Scrapbook"
-          draggable={false}
-          className="h-full w-full rounded-2xl object-cover shadow-soft"
-        />
-      )}
+      <div className="absolute inset-0 overflow-hidden rounded-2xl">
+        {element.type === "text" ? (
+          <div
+            contentEditable
+            suppressContentEditableWarning
+            onDoubleClick={(e) => e.stopPropagation()}
+            onBlur={(e) => onTextChange(element.id, e.currentTarget.innerText)}
+            className="h-full w-full overflow-auto p-4 outline-none"
+            style={{
+              fontSize: `${element.style?.fontSize ?? 16}px`,
+              fontWeight: element.style?.bold ? 700 : 400,
+              fontStyle: element.style?.italic ? "italic" : "normal",
+              color: element.style?.color ?? "#171717",
+              background: element.style?.background ?? "transparent",
+              borderRadius: "inherit"
+            }}
+          >
+            {element.content}
+          </div>
+        ) : element.type === "shape" ? (
+          <ShapeContent element={element} />
+        ) : (
+          <img
+            src={element.src}
+            alt="Scrapbook"
+            draggable={false}
+            className="h-full w-full object-cover shadow-soft"
+            style={{
+              borderRadius: `${element.style?.borderRadius ?? 16}px`,
+              borderWidth: `${element.style?.borderWidth ?? 0}px`,
+              borderColor: element.style?.borderColor ?? "#292524",
+              borderStyle: (element.style?.borderWidth ?? 0) > 0 ? "solid" : "none",
+              boxSizing: "border-box"
+            }}
+          />
+        )}
+      </div>
 
       {selected && (
         <>
           <button
+            type="button"
             data-resize-handle
+            title="Resize"
             onMouseDown={(e) => startResize(e, "se")}
-            className="absolute -bottom-2 -right-2 h-4 w-4 rounded-full border border-black bg-white"
-          />
+            className="absolute -bottom-2 -right-2 z-30 flex h-7 w-7 cursor-se-resize items-center justify-center rounded-xl border-2 border-black bg-white text-black shadow-md hover:bg-neutral-50"
+          >
+            <ArrowDownRight className="h-3.5 w-3.5" strokeWidth={2.25} />
+          </button>
           <button
+            type="button"
             data-resize-handle
+            title="Resize"
             onMouseDown={(e) => startResize(e, "nw")}
-            className="absolute -left-2 -top-2 h-4 w-4 rounded-full border border-black bg-white"
-          />
+            className="absolute -left-2 -top-2 z-30 flex h-7 w-7 cursor-nw-resize items-center justify-center rounded-xl border-2 border-black bg-white text-black shadow-md hover:bg-neutral-50"
+          >
+            <ArrowUpLeft className="h-3.5 w-3.5" strokeWidth={2.25} />
+          </button>
         </>
       )}
     </motion.div>
