@@ -112,11 +112,16 @@ export default function Canvas({
   return (
     <div className="relative h-full overflow-hidden" style={{ backgroundColor: bg.color }} onMouseDown={handlePanMouseDown} onContextMenu={handleCanvasContextMenu}>
       <motion.div
-        animate={{ x: pan.x, y: pan.y, scale: zoom }}
+        animate={{ x: pan.x, y: pan.y }}
         transition={{ type: "tween", ease: "easeOut", duration: 0.2 }}
-        className={`relative h-[2200px] w-[3200px] ${panning ? "cursor-grabbing" : "cursor-default"}`}
-        style={{ ...patternStyle, transformOrigin: '50% 50%' }}
+        className="relative h-full w-full"
       >
+        <motion.div
+          animate={{ scale: zoom }}
+          transition={{ type: "tween", ease: "easeOut", duration: 0.2 }}
+          className={`relative h-[2200px] w-[3200px] ${panning ? "cursor-grabbing" : "cursor-default"}`}
+          style={{ ...patternStyle, transformOrigin: '50% 50%' }}
+        >
         {(page?.elements ?? []).map((element) => (
           <div key={element.id} data-element data-element-id={element.id} className="absolute left-0 top-0">
             <Element
@@ -129,6 +134,7 @@ export default function Canvas({
             />
           </div>
         ))}
+        </motion.div>
       </motion.div>
 
       <ElementInspector element={selectedElement} onPatchStyle={onPatchStyle} onSetShape={onSetShape} onClose={() => onSelect(null)} />

@@ -122,14 +122,6 @@ export default function Element({
   const [resizing, setResizing] = useState(false);
   const dragStartRef = useRef(null);
 
-  const interacting = dragging || resizing;
-  const layoutTransition = {
-    x: { type: "tween", duration: interacting ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] },
-    y: { type: "tween", duration: interacting ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] },
-    width: { type: "tween", duration: interacting ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] },
-    height: { type: "tween", duration: interacting ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }
-  };
-
   const handleMouseDown = (e) => {
     if (e.target.closest("[data-resize-handle]")) return;
     onSelect(element.id);
@@ -197,6 +189,8 @@ export default function Element({
     window.addEventListener("mouseup", onMouseUpResize);
   };
 
+  const isInteracting = dragging || resizing;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
@@ -207,7 +201,7 @@ export default function Element({
         width: element.width,
         height: element.height
       }}
-      transition={layoutTransition}
+      transition={isInteracting ? { duration: 0 } : { type: "tween", duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
       className={`absolute ${
         selected ? "shadow-soft" : ""
       } ${element.type === "shape" ? "bg-transparent" : "bg-white"}`}
