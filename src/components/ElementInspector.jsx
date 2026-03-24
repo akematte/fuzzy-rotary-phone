@@ -60,20 +60,25 @@ function ColorPicker({ value, onChange, label }) {
 
   useEffect(() => {
     if (!pickerOpen) return;
-    
+
+    let timeoutId = null;
+    let enabled = false;
+
     const handleClickOutside = (e) => {
+      if (!enabled) return;
       if (pickerRef.current && !pickerRef.current.contains(e.target)) {
         setPickerOpen(false);
       }
     };
-    
-    // Use setTimeout to avoid the initial button click triggering the close
-    const timeoutId = setTimeout(() => {
+
+    // Delay enabling the click outside handler
+    timeoutId = setTimeout(() => {
+      enabled = true;
       document.addEventListener("mousedown", handleClickOutside);
-    }, 0);
-    
+    }, 100);
+
     return () => {
-      clearTimeout(timeoutId);
+      if (timeoutId) clearTimeout(timeoutId);
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [pickerOpen]);
@@ -156,6 +161,7 @@ function ColorPicker({ value, onChange, label }) {
                 transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
                 className="fixed z-50 w-52 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl"
                 style={{ left: position.x, top: position.y }}
+                onMouseDown={(e) => e.stopPropagation()}
               >
                 <div
                   className="relative mb-3 h-36 w-full cursor-crosshair overflow-hidden rounded-xl"
