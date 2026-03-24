@@ -13,46 +13,52 @@ import {
 } from "lucide-react";
 
 const COLOR_PRESETS = [
-  "#fef08a",
-  "#fbcfe8",
-  "#bbf7d0",
-  "#a5f3fc",
-  "#e9d5ff",
-  "#fed7aa",
-  "#ffffff",
-  "#171717",
-  "#78716c",
-  "#3b82f6"
+  { value: "#fef08a", name: "Yellow" },
+  { value: "#fbcfe8", name: "Pink" },
+  { value: "#bbf7d0", name: "Green" },
+  { value: "#a5f3fc", name: "Cyan" },
+  { value: "#e9d5ff", name: "Purple" },
+  { value: "#fed7aa", name: "Orange" },
+  { value: "#ffffff", name: "White" },
+  { value: "#171717", name: "Black" },
+  { value: "#78716c", name: "Stone" },
+  { value: "#3b82f6", name: "Blue" }
 ];
 
 function SectionTitle({ children }) {
   return <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{children}</p>;
 }
 
-function ColorRow({ value, onChange, label }) {
+function ColorPicker({ value, onChange, label }) {
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs text-neutral-600">{label}</span>
-      <div className="flex flex-wrap items-center gap-2">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-11 cursor-pointer rounded-lg border border-neutral-200 bg-white p-0.5"
-          aria-label={label}
-        />
-        <div className="flex flex-wrap gap-1">
-          {COLOR_PRESETS.map((c) => (
+    <div className="flex flex-col gap-2">
+      <span className="text-xs font-medium text-neutral-600">{label}</span>
+      <div className="flex items-center gap-2">
+        <div className="relative">
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="h-10 w-10 cursor-pointer rounded-xl border-0 bg-transparent p-0 outline-none"
+            aria-label={label}
+          />
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {COLOR_PRESETS.map((color) => (
             <motion.button
-              key={c}
+              key={color.value}
               type="button"
-              onClick={() => onChange(c)}
-              whileHover={{ scale: 1.12 }}
-              whileTap={{ scale: 0.88 }}
-              transition={{ type: "spring", stiffness: 520, damping: 22 }}
-              className="h-7 w-7 rounded-lg border border-neutral-200 shadow-inner"
-              style={{ backgroundColor: c }}
-              title={c}
+              onClick={() => onChange(color.value)}
+              whileHover={{ scale: 1.15 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className={`h-8 w-8 rounded-xl border transition-all duration-150 ${
+                value === color.value
+                  ? "border-black ring-2 ring-black/20 shadow-md"
+                  : "border-neutral-200 hover:shadow-sm"
+              }`}
+              style={{ backgroundColor: color.value }}
+              title={color.name}
             />
           ))}
         </div>
@@ -153,8 +159,8 @@ export default function ElementInspector({ element, onPatchStyle, onSetShape, on
               )}
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <ColorRow label="Fill" value={st.fill ?? "#fde68a"} onChange={(c) => onPatchStyle(element.id, { fill: c })} />
-                <ColorRow label="Outline" value={st.stroke ?? "#292524"} onChange={(c) => onPatchStyle(element.id, { stroke: c })} />
+                <ColorPicker label="Fill" value={st.fill ?? "#fde68a"} onChange={(c) => onPatchStyle(element.id, { fill: c })} />
+                <ColorPicker label="Outline" value={st.stroke ?? "#292524"} onChange={(c) => onPatchStyle(element.id, { stroke: c })} />
               </div>
 
               <div>
@@ -240,8 +246,8 @@ export default function ElementInspector({ element, onPatchStyle, onSetShape, on
                 </button>
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <ColorRow label="Text color" value={st.color ?? "#171717"} onChange={(c) => onPatchStyle(element.id, { color: c })} />
-                <ColorRow
+                <ColorPicker label="Text color" value={st.color ?? "#171717"} onChange={(c) => onPatchStyle(element.id, { color: c })} />
+                <ColorPicker
                   label="Background"
                   value={st.background === "transparent" ? "#ffffff" : st.background ?? "#ffffff"}
                   onChange={(c) => onPatchStyle(element.id, { background: c })}
@@ -287,7 +293,7 @@ export default function ElementInspector({ element, onPatchStyle, onSetShape, on
                   <span className="w-8 text-right text-sm tabular-nums text-neutral-600">{st.borderWidth ?? 0}px</span>
                 </div>
               </div>
-              <ColorRow label="Frame color" value={st.borderColor ?? "#292524"} onChange={(c) => onPatchStyle(element.id, { borderColor: c })} />
+              <ColorPicker label="Frame color" value={st.borderColor ?? "#292524"} onChange={(c) => onPatchStyle(element.id, { borderColor: c })} />
             </div>
           )}
         </motion.div>

@@ -32,7 +32,14 @@ export default function ElementContextMenu({ element, position, onClose, onDelet
     top: Math.min(position.y, window.innerHeight - 200)
   };
 
-  const menuItemClass = "group flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm font-medium transition-all duration-150";
+  const getTypeLabel = (type) => {
+    const labels = {
+      shape: "Shape",
+      text: "Text",
+      image: "Image"
+    };
+    return labels[type] || "Element";
+  };
 
   return (
     <AnimatePresence>
@@ -45,14 +52,15 @@ export default function ElementContextMenu({ element, position, onClose, onDelet
         className="fixed z-50 min-w-[200px] overflow-hidden rounded-2xl border border-neutral-200 bg-white p-1.5 shadow-2xl"
         style={menuStyle}
       >
-        <div className="mb-1 px-3 py-2">
-          <span className="text-xs font-semibold capitalize text-neutral-400">
-            {element?.type ?? "Element"}
+        <div className="mb-1 flex items-center gap-2 px-3 py-2">
+          <div className="h-2 w-2 rounded-full bg-neutral-300" />
+          <span className="text-xs font-semibold text-neutral-500">
+            {getTypeLabel(element?.type)}
           </span>
         </div>
         <div className="h-px bg-neutral-100" />
         <button
-          className={`${menuItemClass} text-neutral-700 hover:bg-neutral-50`}
+          className="group flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-neutral-700 transition-all duration-150 hover:bg-neutral-100"
           onClick={() => {
             onDuplicate?.(element.id);
             onClose();
@@ -62,7 +70,7 @@ export default function ElementContextMenu({ element, position, onClose, onDelet
           Duplicate
         </button>
         <button
-          className={`${menuItemClass} text-neutral-700 hover:bg-neutral-50`}
+          className="group flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-neutral-700 transition-all duration-150 hover:bg-neutral-100"
           onClick={() => {
             onBringToFront?.(element.id);
             onClose();
@@ -72,7 +80,7 @@ export default function ElementContextMenu({ element, position, onClose, onDelet
           Bring to front
         </button>
         <button
-          className={`${menuItemClass} text-neutral-700 hover:bg-neutral-50`}
+          className="group flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-neutral-700 transition-all duration-150 hover:bg-neutral-100"
           onClick={() => {
             onSendToBack?.(element.id);
             onClose();
@@ -83,7 +91,7 @@ export default function ElementContextMenu({ element, position, onClose, onDelet
         </button>
         <div className="my-1 h-px bg-neutral-100" />
         <button
-          className={`${menuItemClass} text-red-600 hover:bg-red-50`}
+          className="group flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-all duration-150 hover:bg-red-100"
           onClick={() => {
             onDelete?.(element.id);
             onClose();

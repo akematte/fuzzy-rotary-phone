@@ -68,7 +68,13 @@ export default function PageContextMenu({ page, position, onClose, onDelete, onR
         style={menuStyle}
       >
         {isRenaming ? (
-          <div className="p-2">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.98 }}
+            transition={{ duration: 0.1 }}
+            className="p-2"
+          >
             <input
               ref={inputRef}
               type="text"
@@ -77,18 +83,19 @@ export default function PageContextMenu({ page, position, onClose, onDelete, onR
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSubmitRename();
               }}
-              className="w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm font-medium outline-none focus:border-black focus:ring-1 focus:ring-black"
+              className="w-full rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2.5 text-sm font-medium outline-none focus:border-black focus:bg-white focus:ring-2 focus:ring-black/10 transition-all duration-150"
               placeholder="Page name"
             />
-          </div>
+          </motion.div>
         ) : (
           <>
-            <div className="mb-1 px-3 py-2">
-              <span className="text-xs font-semibold text-neutral-400">Page Options</span>
+            <div className="mb-1 flex items-center gap-2 px-3 py-2">
+              <div className="h-2 w-2 rounded-full bg-neutral-300" />
+              <span className="text-xs font-semibold text-neutral-500">Page options</span>
             </div>
             <div className="h-px bg-neutral-100" />
             <button
-              className="group flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm font-medium text-neutral-700 transition-all duration-150 hover:bg-neutral-50"
+              className="group flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-neutral-700 transition-all duration-150 hover:bg-neutral-100"
               onClick={() => setIsRenaming(true)}
             >
               <FilePenLine className="h-4 w-4 text-neutral-400 transition-colors group-hover:text-neutral-600" />
@@ -96,7 +103,7 @@ export default function PageContextMenu({ page, position, onClose, onDelete, onR
             </button>
             <div className="my-1 h-px bg-neutral-100" />
             <button
-              className="group flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-all duration-150 hover:bg-red-50"
+              className="group flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-left text-sm font-medium text-red-600 transition-all duration-150 hover:bg-red-100"
               onClick={() => {
                 onDelete?.(page.id);
                 onClose();
