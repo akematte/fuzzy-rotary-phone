@@ -34,21 +34,22 @@ function ColorPicker({ value, onChange, label }) {
     <div className="flex flex-col gap-2">
       <span className="text-xs font-medium text-neutral-600">{label}</span>
       <div className="flex items-center gap-2">
-        <div className="relative">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-200 bg-gradient-to-br from-neutral-100 to-neutral-200 shadow-sm">
-            <input
-              type="color"
-              value={value}
-              onChange={(e) => onChange(e.target.value)}
-              className="h-8 w-8 cursor-pointer rounded-lg border-0 bg-transparent p-0 outline-none opacity-0"
-              aria-label={label}
-            />
-            <div 
-              className="pointer-events-none absolute h-5 w-5 rounded-lg border border-black/10 shadow-sm" 
-              style={{ backgroundColor: value }}
-            />
-          </div>
-        </div>
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => {
+            const input = document.createElement("input");
+            input.type = "color";
+            input.value = value;
+            input.onChange = (e) => onChange(e.target.value);
+            input.click();
+          }}
+          className="flex h-10 w-10 items-center justify-center rounded-xl border-2 p-0.5 shadow-sm transition-colors"
+          style={{ borderColor: value }}
+        >
+          <div className="h-full w-full rounded-lg" style={{ backgroundColor: value }} />
+        </motion.button>
         <div className="flex flex-wrap gap-1.5">
           {COLOR_PRESETS.map((color) => (
             <motion.button
