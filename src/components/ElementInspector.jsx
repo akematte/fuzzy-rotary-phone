@@ -120,6 +120,17 @@ function ColorPicker({ value, onChange, label }) {
     }
   };
 
+  const handleHexInputKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const hexVal = hexInput.startsWith('#') ? hexInput : '#' + hexInput;
+      if (/^#[0-9A-F]{6}$/i.test(hexVal)) {
+        onChange(hexVal.toUpperCase());
+        setPickerOpen(false);
+      }
+    }
+  };
+
   const handleClick = (e) => {
     e.stopPropagation();
     setHexInput(value.toUpperCase());
@@ -195,6 +206,7 @@ function ColorPicker({ value, onChange, label }) {
               type="text"
               value={hexInput}
               onChange={handleHexInputChange}
+              onKeyDown={handleHexInputKeyDown}
               className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-xs font-mono uppercase outline-none focus:border-black focus:ring-1 focus:ring-black"
               placeholder="#000000"
               maxLength={7}
@@ -224,10 +236,10 @@ export default function ElementInspector({ element, onPatchStyle, onSetShape, on
       {element && (
         <motion.div
           key={element.id}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 16 }}
-          transition={{ type: "spring", stiffness: 320, damping: 32 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.15 }}
           onMouseDown={(e) => e.stopPropagation()}
           className="pointer-events-auto fixed bottom-4 right-4 z-20 max-h-[min(52vh,520px)] w-[min(calc(100vw-32px),560px)] max-w-md overflow-y-auto rounded-2xl border border-neutral-200 bg-white/95 p-4 shadow-soft backdrop-blur-md"
         >
