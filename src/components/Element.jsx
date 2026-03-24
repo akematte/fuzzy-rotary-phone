@@ -124,10 +124,10 @@ export default function Element({
 
   const interacting = dragging || resizing;
   const layoutTransition = {
-    x: { type: "tween", duration: 0 },
-    y: { type: "tween", duration: 0 },
-    width: { type: "tween", duration: 0 },
-    height: { type: "tween", duration: 0 }
+    x: { type: "spring", stiffness: interacting ? 800 : 350, damping: interacting ? 40 : 25, mass: 0.3 },
+    y: { type: "spring", stiffness: interacting ? 800 : 350, damping: interacting ? 40 : 25, mass: 0.3 },
+    width: { type: "spring", stiffness: interacting ? 600 : 300, damping: interacting ? 35 : 20, mass: 0.3 },
+    height: { type: "spring", stiffness: interacting ? 600 : 300, damping: interacting ? 35 : 20, mass: 0.3 }
   };
 
   const handleMouseDown = (e) => {
