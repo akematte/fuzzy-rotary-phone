@@ -34,6 +34,7 @@ function ColorPicker({ value, onChange, label }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [hsv, setHsv] = useState({ h: 0, s: 100, v: 100 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
+  const buttonRef = useRef(null);
   const pickerRef = useRef(null);
 
   useEffect(() => {
@@ -99,8 +100,9 @@ function ColorPicker({ value, onChange, label }) {
     onChange(hex);
   };
 
-  const handleClick = (e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
+  const handleClick = () => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
     const pickerWidth = 208;
     const pickerHeight = 280;
     const margin = 8;
@@ -115,7 +117,7 @@ function ColorPicker({ value, onChange, label }) {
       y = rect.top - pickerHeight - margin;
     }
     
-    setPosition({ x, y });
+    setPosition({ x: Math.max(margin, x), y: Math.max(margin, y) });
     setPickerOpen(true);
   };
 
@@ -126,19 +128,20 @@ function ColorPicker({ value, onChange, label }) {
         <div className="relative" ref={pickerRef}>
           <motion.button
             type="button"
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.98 }}
             onClick={handleClick}
-            className={`h-8 w-8 rounded-xl border-2 bg-gradient-to-br from-red-500 via-yellow-500 via-green-500 via-cyan-500 to-blue-500 transition-all duration-150 ${
+            className={`h-8 w-8 rounded-xl border-2 bg-gradient-to-br from-red-500 via-yellow-500 via-green-500 via-cyan-500 to-blue-500 transition-colors ${
               !COLOR_PRESETS.some((c) => c.value === value)
                 ? "ring-2 ring-black/20 shadow-md"
-                : "border-neutral-200 hover:shadow-sm"
+                : "border-neutral-200"
             }`}
             title="Custom color"
           />
           <AnimatePresence>
             {pickerOpen && (
               <motion.div
+                ref={pickerRef}
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
@@ -226,13 +229,12 @@ function ColorPicker({ value, onChange, label }) {
             key={color.value}
             type="button"
             onClick={() => onChange(color.value)}
-            whileHover={{ scale: 1.15 }}
-            whileTap={{ scale: 0.9 }}
-            transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            className={`h-8 w-8 rounded-xl border transition-all duration-150 ${
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.98 }}
+            className={`h-8 w-8 rounded-xl border transition-colors ${
               value === color.value
                 ? "border-black ring-2 ring-black/20 shadow-md"
-                : "border-neutral-200 hover:shadow-sm"
+                : "border-neutral-200"
             }`}
             style={{ backgroundColor: color.value }}
             title={color.name}
