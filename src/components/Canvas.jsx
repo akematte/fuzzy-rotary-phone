@@ -2,6 +2,24 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import Element from "./Element";
 import ElementInspector from "./ElementInspector";
+import ElementContextMenu from "./ElementContextMenu";
+
+const patternStyles = {
+  grid: {
+    backgroundImage: `
+      linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px)
+    `,
+    backgroundSize: "24px 24px"
+  },
+  dots: {
+    backgroundImage: `radial-gradient(circle, rgba(0, 0, 0, 0.08) 1px, transparent 1px)`,
+    backgroundSize: "24px 24px"
+  },
+  none: {
+    backgroundImage: "none"
+  }
+};
 
 export default function Canvas({
   page,
@@ -11,10 +29,19 @@ export default function Canvas({
   onResize,
   onTextChange,
   onPatchStyle,
-  onSetShape
+  onSetShape,
+  canvasBackground,
+  onDeleteElement,
+  onDuplicateElement,
+  onBringToFront,
+  onSendToBack
 }) {
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [panning, setPanning] = useState(false);
+  const [contextMenu, setContextMenu] = useState(null);
+
+  const bg = canvasBackground ?? { color: "#ffffff", pattern: "grid" };
+  const patternStyle = patternStyles[bg.pattern] ?? patternStyles.grid;
 
   const handlePanMouseDown = (e) => {
     if (e.target.closest("[data-element]")) return;
@@ -35,8 +62,26 @@ export default function Canvas({
     window.addEventListener("mouseup", onMouseUp);
   };
 
+  const handleCanvasContextMenu = (e) => {
+    e.preventDefault();
+    const element = e.target.closest("[data-element]");
+    if (element) {
+      const elementId = element.dataset.elementId;
+      const el = page?.elements?.find((el) => el.id === elementId);
+      if (el) {
+        setContextMenu({
+          x: e.clientX,
+          y: e.clientY,
+          element: el
+        });
+      }
+    } else {
+      setContextMenu(null);
+    }
+  };
+
   return (
-    <div className="relative h-full overflow-hidden bg-white" onMouseDown={handlePanMouseDown}>
+    <div className="relative h-full overflow-hidden" style={{ backgroundColor: bg.color }} onMouseDown={handlePanMouseDown} onContextMenu={handleCanvasContextMenu}>
       <motion.div
         animate={{ x: pan.x, y: pan.y }}
         transition={{
@@ -47,10 +92,11 @@ export default function Canvas({
           restDelta: 0.15,
           restSpeed: 0.15
         }}
-        className={`canvas-grid relative h-[2200px] w-[3200px] ${panning ? "cursor-grabbing" : "cursor-default"}`}
+        className={`relative h-[2200px] w-[3200px] ${panning ? "cursor-grabbing" : "cursor-default"}`}
+        style={patternStyle}
       >
         {(page?.elements ?? []).map((element) => (
-          <div key={element.id} data-element className="absolute left-0 top-0">
+          <div key={element.id} data-element data-element-id={element.id} className="absolute left-0 top-0">
             <Element
               element={element}
               selected={selectedElement?.id === element.id}
@@ -64,6 +110,18 @@ export default function Canvas({
       </motion.div>
 
       <ElementInspector element={selectedElement} onPatchStyle={onPatchStyle} onSetShape={onSetShape} />
+      
+      {contextMenu && (
+        <ElementContextMenu
+          element={contextMenu.element}
+          position={{ x: contextMenu.x, y: contextMenu.y }}
+          onClose={() => setContextMenu(null)}
+          onDelete={onDeleteElement}
+          onDuplicate={onDuplicateElement}
+          onBringToFront={onBringToFront}
+          onSendToBack={onSendToBack}
+        />
+      )}
     </div>
   );
 }

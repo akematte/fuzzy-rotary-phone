@@ -17,6 +17,7 @@ export default function ScrapbookPage() {
     activePageId,
     selectedElementId,
     sidebarCollapsed,
+    canvasBackground,
     history,
     future,
     createPage,
@@ -30,6 +31,11 @@ export default function ScrapbookPage() {
     patchElementStyle,
     patchShapeWithFit,
     importBoard,
+    setCanvasBackground,
+    deleteElement,
+    duplicateElement,
+    bringElementToFront,
+    sendElementToBack,
     undo,
     redo
   } = useScrapbookStore();
@@ -167,6 +173,8 @@ export default function ScrapbookPage() {
       onCopyShareLink={handleCopyShareLink}
       onExportJson={handleExportJson}
       onImportJsonPick={() => importBoardInputRef.current?.click()}
+      onSetCanvasBackground={setCanvasBackground}
+      canvasBackground={canvasBackground}
       canUndo={history.length > 0}
       canRedo={future.length > 0}
     />
@@ -201,6 +209,11 @@ export default function ScrapbookPage() {
             onTextChange={(id, content) => updateElement(id, { content })}
             onPatchStyle={patchElementStyle}
             onSetShape={patchShapeWithFit}
+            canvasBackground={canvasBackground}
+            onDeleteElement={deleteElement}
+            onDuplicateElement={duplicateElement}
+            onBringToFront={bringElementToFront}
+            onSendToBack={sendElementToBack}
           />
         </motion.div>
       </AnimatePresence>

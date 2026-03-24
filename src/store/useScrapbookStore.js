@@ -56,7 +56,8 @@ const saveState = (state) => {
     STORAGE_KEY,
     JSON.stringify({
       pages: state.pages,
-      activePageId: state.activePageId
+      activePageId: state.activePageId,
+      canvasBackground: state.canvasBackground
     })
   );
 };
@@ -88,12 +89,14 @@ export const useScrapbookStore = create((set, get) => {
     sidebarCollapsed: false,
     history: [],
     future: [],
+    canvasBackground: restored?.canvasBackground ?? { color: "#ffffff", pattern: "grid" },
 
     commit: (updater) => {
       set((state) => {
         const snapshot = {
           pages: state.pages,
-          activePageId: state.activePageId
+          activePageId: state.activePageId,
+          canvasBackground: state.canvasBackground
         };
         const nextPartial = updater(state);
         const next = { ...state, ...nextPartial, history: [...state.history, snapshot], future: [] };
@@ -115,6 +118,57 @@ export const useScrapbookStore = create((set, get) => {
     setActivePage: (pageId) => set({ activePageId: pageId, selectedElementId: null }),
     setSelectedElementId: (id) => set({ selectedElementId: id }),
     toggleSidebar: () => set((state) => ({ sidebarCollapsed: !state.sidebarCollapsed })),
+
+    setCanvasBackground: (background) =>
+      get().commit(() => ({ canvasBackground: background })),
+
+    deleteElement: (elementId) =>
+      get().commit((state) => ({
+        pages: updatePageById(state.pages, state.activePageId, (p) => ({
+          ...p,
+          elements: p.elements.filter((el) => el.id !== elementId)
+        })),
+        selectedElementId: null
+      })),
+
+    duplicateElement: (elementId) =>
+      get().commit((state) => {
+        const page = state.pages.find((p) => p.id === state.activePageId);
+        const element = page?.elements.find((el) => el.id === elementId);
+        if (!element) return { pages: state.pages };
+        
+        const newElement = {
+          ...JSON.parse(JSON.stringify(element)),
+          id: uid(),
+          x: element.x + 20,
+          y: element.y + 20
+        };
+        
+        return {
+          pages: updatePageById(state.pages, state.activePageId, (p) => ({
+            ...p,
+            elements: [...p.elements, newElement]
+          }))
+        };
+      }),
+
+    bringElementToFront: (elementId) =>
+      get().commit((state) => ({
+        pages: updatePageById(state.pages, state.activePageId, (p) => {
+          const elements = p.elements.filter((el) => el.id !== elementId);
+          const element = p.elements.find((el) => el.id === elementId);
+          return { ...p, elements: [...elements, element] };
+        })
+      })),
+
+    sendElementToBack: (elementId) =>
+      get().commit((state) => ({
+        pages: updatePageById(state.pages, state.activePageId, (p) => {
+          const elements = p.elements.filter((el) => el.id !== elementId);
+          const element = p.elements.find((el) => el.id === elementId);
+          return { ...p, elements: [element, ...elements] };
+        })
+      })),
 
     renamePage: (pageId, name) =>
       get().commit((state) => ({

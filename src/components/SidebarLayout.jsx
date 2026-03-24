@@ -4,8 +4,7 @@ export default function SidebarLayout({ sidebar, sidebarWidth, sidebarCollapsed,
   const sidebarSpring = { type: "spring", stiffness: 280, damping: 34 };
 
   return (
-    <div className="flex h-full min-h-0 w-full bg-white">
-      {/* Sidebar - full height */}
+    <div className="flex h-full min-h-0 w-full bg-white rounded-2xl border border-neutral-200 overflow-hidden">
       <motion.aside
         initial={false}
         animate={{ width: sidebarWidth }}
@@ -15,15 +14,12 @@ export default function SidebarLayout({ sidebar, sidebarWidth, sidebarCollapsed,
         {sidebar}
       </motion.aside>
 
-      {/* Main content */}
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
-        {/* Topbar */}
-        <div className="flex h-14 shrink-0 items-stretch border-b border-neutral-200 bg-white">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden p-2 pt-0 pl-0">
+        <div className="flex h-14 shrink-0 items-stretch bg-white pl-2">
           {topbar}
         </div>
 
-        {/* Content */}
-        <div className="min-h-0 flex-1 overflow-hidden bg-white">
+        <div className="min-h-0 flex-1 overflow-hidden bg-neutral-100 rounded-2xl">
           {children}
         </div>
       </div>
