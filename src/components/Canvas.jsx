@@ -51,7 +51,9 @@ export default function Canvas({
     const start = { x: e.clientX, y: e.clientY, ox: pan.x, oy: pan.y };
 
     const onMouseMove = (moveEvent) => {
-      setPan({ x: start.ox + (moveEvent.clientX - start.x), y: start.oy + (moveEvent.clientY - start.y) });
+      const dx = moveEvent.clientX - start.x;
+      const dy = moveEvent.clientY - start.y;
+      setPan({ x: start.ox + dx, y: start.oy + dy });
     };
 
     const onMouseUp = () => {
@@ -111,9 +113,9 @@ export default function Canvas({
     <div className="relative h-full overflow-hidden" style={{ backgroundColor: bg.color }} onMouseDown={handlePanMouseDown} onContextMenu={handleCanvasContextMenu}>
       <motion.div
         animate={{ x: pan.x, y: pan.y, scale: zoom }}
-        transition={{ type: "spring", stiffness: 400, damping: 30, mass: 0.5 }}
+        transition={{ type: "tween", ease: "easeOut", duration: 0.2 }}
         className={`relative h-[2200px] w-[3200px] ${panning ? "cursor-grabbing" : "cursor-default"}`}
-        style={patternStyle}
+        style={{ ...patternStyle, transformOrigin: '50% 50%' }}
       >
         {(page?.elements ?? []).map((element) => (
           <div key={element.id} data-element data-element-id={element.id} className="absolute left-0 top-0">
