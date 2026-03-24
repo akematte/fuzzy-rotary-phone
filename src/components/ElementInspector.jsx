@@ -34,7 +34,6 @@ function ColorPicker({ value, onChange, label }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [hsv, setHsv] = useState({ h: 0, s: 100, v: 100 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const buttonRef = useRef(null);
   const pickerRef = useRef(null);
 
   useEffect(() => {
@@ -100,9 +99,10 @@ function ColorPicker({ value, onChange, label }) {
     onChange(hex);
   };
 
-  const handleClick = () => {
-    if (!buttonRef.current) return;
-    const rect = buttonRef.current.getBoundingClientRect();
+  const handleClick = (e) => {
+    e.stopPropagation();
+    const button = e.currentTarget;
+    const rect = button.getBoundingClientRect();
     const pickerWidth = 208;
     const pickerHeight = 280;
     const margin = 8;
@@ -118,7 +118,7 @@ function ColorPicker({ value, onChange, label }) {
     }
     
     setPosition({ x: Math.max(margin, x), y: Math.max(margin, y) });
-    setPickerOpen(true);
+    setPickerOpen((prev) => !prev);
   };
 
   return (
@@ -127,7 +127,6 @@ function ColorPicker({ value, onChange, label }) {
       <div className="flex flex-wrap items-center gap-1.5">
         <div className="relative">
           <motion.button
-            ref={buttonRef}
             type="button"
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.98 }}
