@@ -99,10 +99,12 @@ function ColorPicker({ value, onChange, label }) {
   const handleHexInputChange = (e) => {
     const val = e.target.value;
     setHexInput(val);
-    if (/^#[0-9A-F]{6}$/i.test(val)) {
-      const r = parseInt(val.substr(1, 2), 16) / 255;
-      const g = parseInt(val.substr(3, 2), 16) / 255;
-      const b = parseInt(val.substr(5, 2), 16) / 255;
+    // Accept with or without # prefix
+    const hexVal = val.startsWith('#') ? val : '#' + val;
+    if (/^#[0-9A-F]{6}$/i.test(hexVal)) {
+      const r = parseInt(hexVal.substr(1, 2), 16) / 255;
+      const g = parseInt(hexVal.substr(3, 2), 16) / 255;
+      const b = parseInt(hexVal.substr(5, 2), 16) / 255;
       const max = Math.max(r, g, b), min = Math.min(r, g, b);
       const d = max - min;
       let h = 0;
@@ -114,7 +116,7 @@ function ColorPicker({ value, onChange, label }) {
         }
       }
       setHsv({ h: h * 360, s: max === 0 ? 0 : (d / max) * 100, v: max * 100 });
-      onChange(val);
+      onChange(hexVal.toUpperCase());
     }
   };
 
@@ -193,8 +195,9 @@ function ColorPicker({ value, onChange, label }) {
               type="text"
               value={hexInput}
               onChange={handleHexInputChange}
-              className="flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1 text-xs font-mono uppercase outline-none focus:border-black focus:ring-1 focus:ring-black"
+              className="min-w-0 flex-1 rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-xs font-mono uppercase outline-none focus:border-black focus:ring-1 focus:ring-black"
               placeholder="#000000"
+              maxLength={7}
             />
           </div>
           <button onClick={() => setPickerOpen(false)} className="w-full rounded-xl bg-black px-3 py-2 text-xs font-medium text-white">Done</button>
@@ -226,7 +229,7 @@ export default function ElementInspector({ element, onPatchStyle, onSetShape, on
           exit={{ opacity: 0, y: 16 }}
           transition={{ type: "spring", stiffness: 320, damping: 32 }}
           onMouseDown={(e) => e.stopPropagation()}
-          className="pointer-events-auto absolute bottom-4 left-1/2 z-20 max-h-[min(52vh,520px)] w-[min(96vw,560px)] -translate-x-1/2 overflow-y-auto rounded-2xl border border-neutral-200 bg-white/95 p-4 shadow-soft backdrop-blur-md"
+          className="pointer-events-auto fixed bottom-4 right-4 z-20 max-h-[min(52vh,520px)] w-[min(calc(100vw-32px),560px)] max-w-md overflow-y-auto rounded-2xl border border-neutral-200 bg-white/95 p-4 shadow-soft backdrop-blur-md"
         >
           <div className="mb-3 flex items-center gap-2 border-b border-neutral-100 pb-3">
             <SlidersHorizontal className="h-4 w-4 text-neutral-500" />
