@@ -11,6 +11,7 @@ import {
   Type,
   X
 } from "lucide-react";
+import { useState } from "react";
 
 const COLOR_PRESETS = [
   { value: "#fef08a", name: "Yellow" },
@@ -30,45 +31,97 @@ function SectionTitle({ children }) {
 }
 
 function ColorPicker({ value, onChange, label }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [customColor, setCustomColor] = useState(value);
+
   return (
     <div className="flex flex-col gap-2">
       <span className="text-xs font-medium text-neutral-600">{label}</span>
-      <div className="flex items-center gap-2">
-        <motion.button
-          type="button"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => {
-            const input = document.createElement("input");
-            input.type = "color";
-            input.value = value;
-            input.onChange = (e) => onChange(e.target.value);
-            input.click();
-          }}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border-2 p-0.5 shadow-sm transition-colors"
-          style={{ borderColor: value }}
-        >
-          <div className="h-full w-full rounded-lg" style={{ backgroundColor: value }} />
-        </motion.button>
-        <div className="flex flex-wrap gap-1.5">
-          {COLOR_PRESETS.map((color) => (
-            <motion.button
-              key={color.value}
-              type="button"
-              onClick={() => onChange(color.value)}
-              whileHover={{ scale: 1.15 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className={`h-8 w-8 rounded-xl border transition-all duration-150 ${
-                value === color.value
-                  ? "border-black ring-2 ring-black/20 shadow-md"
-                  : "border-neutral-200 hover:shadow-sm"
-              }`}
-              style={{ backgroundColor: color.value }}
-              title={color.name}
-            />
-          ))}
+      <div className="flex flex-wrap items-center gap-1.5">
+        {/* Custom color button - rainbow gradient */}
+        <div className="relative">
+          <motion.button
+            type="button"
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setPickerOpen(!pickerOpen)}
+            className={`h-8 w-8 rounded-xl border-2 bg-gradient-to-br from-red-500 via-yellow-500 via-green-500 via-cyan-500 to-blue-500 transition-all duration-150 ${
+              !COLOR_PRESETS.some((c) => c.value === value)
+                ? "ring-2 ring-black/20 shadow-md"
+                : "border-neutral-200 hover:shadow-sm"
+            }`}
+            title="Custom color"
+          />
+          <AnimatePresence>
+            {pickerOpen && (
+              <>
+                <div
+                  className="fixed inset-0 z-40"
+                  onClick={() => setPickerOpen(false)}
+                />
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                  transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
+                  className="absolute left-0 top-full z-50 mt-2 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl"
+                >
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="text-xs font-medium text-neutral-500">Pick color</span>
+                    <button
+                      onClick={() => setPickerOpen(false)}
+                      className="rounded-lg p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                  <div className="mb-3 flex items-center gap-2">
+                    <div
+                      className="h-10 w-10 rounded-xl border border-neutral-200 shadow-sm"
+                      style={{ backgroundColor: customColor }}
+                    />
+                    <input
+                      type="color"
+                      value={customColor}
+                      onChange={(e) => setCustomColor(e.target.value)}
+                      className="h-10 flex-1 cursor-pointer rounded-xl border-0 bg-transparent p-0"
+                    />
+                  </div>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      onChange(customColor);
+                      setPickerOpen(false);
+                    }}
+                    className="w-full rounded-xl bg-black px-3 py-2 text-xs font-medium text-white transition hover:bg-neutral-800"
+                  >
+                    Apply
+                  </motion.button>
+                </motion.div>
+              </>
+            )}
+          </AnimatePresence>
         </div>
+        
+        {/* Preset colors */}
+        {COLOR_PRESETS.map((color) => (
+          <motion.button
+            key={color.value}
+            type="button"
+            onClick={() => onChange(color.value)}
+            whileHover={{ scale: 1.15 }}
+            whileTap={{ scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+            className={`h-8 w-8 rounded-xl border transition-all duration-150 ${
+              value === color.value
+                ? "border-black ring-2 ring-black/20 shadow-md"
+                : "border-neutral-200 hover:shadow-sm"
+            }`}
+            style={{ backgroundColor: color.value }}
+            title={color.name}
+          />
+        ))}
       </div>
     </div>
   );
