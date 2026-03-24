@@ -109,7 +109,6 @@ function ColorPicker({ value, onChange, label }) {
 
   const handleClick = (e) => {
     e.stopPropagation();
-    console.log('Color picker clicked!');
     const button = e.currentTarget;
     const rect = button.getBoundingClientRect();
     const pickerWidth = 208;
@@ -126,13 +125,8 @@ function ColorPicker({ value, onChange, label }) {
       y = rect.top - pickerHeight - margin;
     }
 
-    console.log('Setting position:', { x: Math.max(margin, x), y: Math.max(margin, y) });
     setPosition({ x: Math.max(margin, x), y: Math.max(margin, y) });
-    setPickerOpen((prev) => {
-      const newVal = !prev;
-      console.log('Picker open:', newVal);
-      return newVal;
-    });
+    setPickerOpen(true);
   };
 
   return (
