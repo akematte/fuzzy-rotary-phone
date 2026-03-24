@@ -95,6 +95,7 @@ function ColorPicker({ value, onChange, label }) {
 
   const handleClick = (e) => {
     e.stopPropagation();
+    alert('COLOR PICKER CLICK WORKS! Picker should open at: ' + JSON.stringify({ x: e.clientX, y: e.clientY }));
     const rect = e.currentTarget.getBoundingClientRect();
     setPosition({ x: rect.left, y: rect.bottom + 8 });
     setPickerOpen(true);
