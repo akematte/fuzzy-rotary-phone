@@ -129,7 +129,7 @@ export default function Canvas({
             />
           </div>
         ))}
-      </motion.div>
+      </div>
 
       <ElementInspector element={selectedElement} onPatchStyle={onPatchStyle} onSetShape={onSetShape} onClose={() => onSelect(null)} />
       

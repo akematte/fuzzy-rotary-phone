@@ -236,10 +236,10 @@ export default function ElementInspector({ element, onPatchStyle, onSetShape, on
       {element && (
         <motion.div
           key={element.id}
-          initial={{ opacity: 0, y: 20, scale: 0.98 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.98 }}
-          transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 40 }}
+          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
           onMouseDown={(e) => e.stopPropagation()}
           className="pointer-events-auto fixed bottom-4 right-4 z-20 max-h-[min(52vh,520px)] w-[min(calc(100vw-32px),560px)] max-w-md overflow-y-auto rounded-2xl border border-neutral-200 bg-white/95 p-4 shadow-soft backdrop-blur-md"
         >
