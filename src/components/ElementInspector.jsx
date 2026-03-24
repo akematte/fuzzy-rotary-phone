@@ -35,13 +35,19 @@ function ColorPicker({ value, onChange, label }) {
       <span className="text-xs font-medium text-neutral-600">{label}</span>
       <div className="flex items-center gap-2">
         <div className="relative">
-          <input
-            type="color"
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className="h-10 w-10 cursor-pointer rounded-xl border-0 bg-transparent p-0 outline-none"
-            aria-label={label}
-          />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-neutral-200 bg-gradient-to-br from-neutral-100 to-neutral-200 shadow-sm">
+            <input
+              type="color"
+              value={value}
+              onChange={(e) => onChange(e.target.value)}
+              className="h-8 w-8 cursor-pointer rounded-lg border-0 bg-transparent p-0 outline-none opacity-0"
+              aria-label={label}
+            />
+            <div 
+              className="pointer-events-none absolute h-5 w-5 rounded-lg border border-black/10 shadow-sm" 
+              style={{ backgroundColor: value }}
+            />
+          </div>
         </div>
         <div className="flex flex-wrap gap-1.5">
           {COLOR_PRESETS.map((color) => (
@@ -93,13 +99,10 @@ export default function ElementInspector({ element, onPatchStyle, onSetShape, on
           <div className="mb-3 flex items-center gap-2 border-b border-neutral-100 pb-3">
             <SlidersHorizontal className="h-4 w-4 text-neutral-500" />
             <span className="text-sm font-semibold text-neutral-900">Element options</span>
-            <span className="ml-auto rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
-              {element.type}
-            </span>
             <button
               type="button"
               onClick={onClose}
-              className="ml-2 rounded-lg p-1.5 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-600"
+              className="ml-auto rounded-lg p-1.5 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-600"
             >
               <X className="h-4 w-4" />
             </button>
@@ -148,7 +151,7 @@ export default function ElementInspector({ element, onPatchStyle, onSetShape, on
                     <input
                       type="range"
                       min={0}
-                      max={64}
+                      max={100}
                       value={st.borderRadius ?? 16}
                       onChange={(e) => onPatchStyle(element.id, { borderRadius: Number(e.target.value) })}
                       className="h-2 flex-1 accent-black"

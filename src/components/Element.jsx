@@ -222,6 +222,11 @@ export default function Element({
             suppressContentEditableWarning
             onDoubleClick={(e) => e.stopPropagation()}
             onBlur={(e) => onTextChange(element.id, e.currentTarget.innerText)}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") {
+                e.currentTarget.blur();
+              }
+            }}
             className="h-full w-full overflow-auto p-4 outline-none"
             style={{
               fontSize: `${element.style?.fontSize ?? 16}px`,
