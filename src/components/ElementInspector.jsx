@@ -136,27 +136,26 @@ function ColorPicker({ value, onChange, label }) {
     <div className="flex flex-col gap-2">
       <span className="text-xs font-medium text-neutral-600">{label}</span>
       <div className="flex flex-wrap items-center gap-1.5">
-        <div className="relative">
-          <motion.button
-            type="button"
-            whileHover={{ scale: 1.04 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleClick}
-            className={`h-8 w-8 rounded-xl border-2 bg-gradient-to-br from-red-500 via-yellow-500 via-green-500 via-cyan-500 to-blue-500 transition-colors ${
-              !COLOR_PRESETS.some((c) => c.value === value)
-                ? "ring-2 ring-black/20 shadow-md"
-                : "border-neutral-200"
-            }`}
-            title="Custom color"
-          />
-          {typeof window !== 'undefined' && pickerOpen && createPortal(
-            <div
-              ref={pickerRef}
-              className="fixed z-[9999] w-52 rounded-2xl border-4 border-red-500 bg-white p-3 shadow-xl"
-              style={{ left: `${position.x}px`, top: `${position.y}px`, backgroundColor: 'white' }}
-              onMouseDown={(e) => e.stopPropagation()}
-            >
-              <div className="text-red-500 font-bold text-sm mb-2">PICKER IS OPEN!</div>
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={handleClick}
+          className={`h-8 w-8 rounded-xl border-2 bg-gradient-to-br from-red-500 via-yellow-500 via-green-500 via-cyan-500 to-blue-500 transition-colors ${
+            !COLOR_PRESETS.some((c) => c.value === value)
+              ? "ring-2 ring-black/20 shadow-md"
+              : "border-neutral-200"
+          }`}
+          title="Custom color"
+        />
+        {typeof window !== 'undefined' && pickerOpen && createPortal(
+          <div
+            ref={pickerRef}
+            className="fixed z-[9999] w-52 rounded-2xl border-4 border-red-500 bg-white p-3 shadow-xl"
+            style={{ left: `${position.x}px`, top: `${position.y}px`, backgroundColor: 'white' }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <div className="text-red-500 font-bold text-sm mb-2">PICKER IS OPEN!</div>
                 <div
                   className="relative mb-3 h-36 w-full cursor-crosshair overflow-hidden rounded-xl"
                   style={{
@@ -231,8 +230,7 @@ function ColorPicker({ value, onChange, label }) {
             </div>,
             document.body
           )}
-        </div>
-        
+
         {COLOR_PRESETS.map((color) => (
           <motion.button
             key={color.value}
