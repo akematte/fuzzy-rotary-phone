@@ -11,7 +11,7 @@ import {
   Type,
   X
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 const COLOR_PRESETS = [
   { value: "#fef08a", name: "Yellow" },
@@ -30,16 +30,107 @@ function SectionTitle({ children }) {
   return <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500">{children}</p>;
 }
 
+function rgbToHex(r, g, b) {
+  return "#" + [r, g, b].map(x => {
+    const hex = Math.round(x).toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+  }).join("");
+}
+
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : { r: 255, g: 0, b: 0 };
+}
+
+function rgbToHsv(r, g, b) {
+  r /= 255; g /= 255; b /= 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b);
+  let h, s, v = max;
+  const d = max - min;
+  s = max === 0 ? 0 : d / max;
+  if (max === min) {
+    h = 0;
+  } else {
+    switch (max) {
+      case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+      case g: h = ((b - r) / d + 2) / 6; break;
+      case b: h = ((r - g) / d + 4) / 6; break;
+    }
+  }
+  return { h: h * 360, s: s * 100, v: v * 100 };
+}
+
+function hsvToRgb(h, s, v) {
+  h /= 360; s /= 100; v /= 100;
+  let r, g, b;
+  const i = Math.floor(h * 6);
+  const f = h * 6 - i;
+  const p = v * (1 - s);
+  const q = v * (1 - f * s);
+  const t = v * (1 - (1 - f) * s);
+  switch (i % 6) {
+    case 0: r = v; g = t; b = p; break;
+    case 1: r = q; g = v; b = p; break;
+    case 2: r = p; g = v; b = t; break;
+    case 3: r = p; g = q; b = v; break;
+    case 4: r = t; g = p; b = v; break;
+    case 5: r = v; g = p; b = q; break;
+  }
+  return { r: r * 255, g: g * 255, b: b * 255 };
+}
+
 function ColorPicker({ value, onChange, label }) {
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [customColor, setCustomColor] = useState(value);
+  const [hsv, setHsv] = useState(rgbToHsv(...Object.values(hexToRgb(value))));
+  const pickerRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+        setPickerOpen(false);
+      }
+    };
+    if (pickerOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [pickerOpen]);
+
+  const handleSaturationValueChange = (clientX, clientY) => {
+    const rect = pickerRef.current?.querySelector("[data-sv-picker]")?.getBoundingClientRect();
+    if (!rect) return;
+    const s = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+    const v = Math.max(0, Math.min(100, 100 - ((clientY - rect.top) / rect.height) * 100));
+    setHsv(prev => {
+      const rgb = hsvToRgb(prev.h, s, v);
+      onChange(rgbToHex(rgb.r, rgb.g, rgb.b));
+      return { ...prev, s, v };
+    });
+  };
+
+  const handleHueChange = (clientY) => {
+    const rect = pickerRef.current?.querySelector("[data-hue-slider]")?.getBoundingClientRect();
+    if (!rect) return;
+    const h = Math.max(0, Math.min(360, ((clientY - rect.top) / rect.height) * 360));
+    setHsv(prev => {
+      const rgb = hsvToRgb(h, prev.s, prev.v);
+      onChange(rgbToHex(rgb.r, rgb.g, rgb.b));
+      return { ...prev, h };
+    });
+  };
+
+  const currentRgb = hexToRgb(value);
 
   return (
     <div className="flex flex-col gap-2">
       <span className="text-xs font-medium text-neutral-600">{label}</span>
       <div className="flex flex-wrap items-center gap-1.5">
         {/* Custom color button - rainbow gradient */}
-        <div className="relative">
+        <div className="relative" ref={pickerRef}>
           <motion.button
             type="button"
             whileHover={{ scale: 1.15 }}
@@ -54,52 +145,132 @@ function ColorPicker({ value, onChange, label }) {
           />
           <AnimatePresence>
             {pickerOpen && (
-              <>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
+                className="absolute left-0 top-full z-50 mt-2 w-64 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl"
+              >
+                {/* Saturation/Value picker */}
                 <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setPickerOpen(false)}
-                />
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: -8 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: -8 }}
-                  transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
-                  className="absolute left-0 top-full z-50 mt-2 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl"
+                  data-sv-picker
+                  className="relative mb-3 h-32 w-full cursor-crosshair overflow-hidden rounded-xl"
+                  style={{
+                    backgroundColor: `hsl(${hsv.h}, 100%, 50%)`,
+                    backgroundImage: `
+                      linear-gradient(to right, white, transparent),
+                      linear-gradient(to top, black, transparent)
+                    `
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSaturationValueChange(e.clientX, e.clientY);
+                    const onMouseMove = (moveEvent) => {
+                      handleSaturationValueChange(moveEvent.clientX, moveEvent.clientY);
+                    };
+                    const onMouseUp = () => {
+                      window.removeEventListener("mousemove", onMouseMove);
+                      window.removeEventListener("mouseup", onMouseUp);
+                    };
+                    window.addEventListener("mousemove", onMouseMove);
+                    window.addEventListener("mouseup", onMouseUp);
+                  }}
                 >
-                  <div className="mb-2 flex items-center justify-between">
-                    <span className="text-xs font-medium text-neutral-500">Pick color</span>
-                    <button
-                      onClick={() => setPickerOpen(false)}
-                      className="rounded-lg p-1 text-neutral-400 hover:bg-neutral-100 hover:text-neutral-600"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                  <div className="mb-3 flex items-center gap-2">
-                    <div
-                      className="h-10 w-10 rounded-xl border border-neutral-200 shadow-sm"
-                      style={{ backgroundColor: customColor }}
-                    />
-                    <input
-                      type="color"
-                      value={customColor}
-                      onChange={(e) => setCustomColor(e.target.value)}
-                      className="h-10 flex-1 cursor-pointer rounded-xl border-0 bg-transparent p-0"
-                    />
-                  </div>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => {
-                      onChange(customColor);
-                      setPickerOpen(false);
+                  <div
+                    className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-md"
+                    style={{
+                      left: `${hsv.s}%`,
+                      top: `${100 - hsv.v}%`
                     }}
-                    className="w-full rounded-xl bg-black px-3 py-2 text-xs font-medium text-white transition hover:bg-neutral-800"
+                  />
+                </div>
+
+                {/* Hue slider */}
+                <div
+                  data-hue-slider
+                  className="relative mb-3 h-4 w-full cursor-pointer overflow-hidden rounded-full"
+                  style={{
+                    background: "linear-gradient(to bottom, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)"
+                  }}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleHueChange(e.clientY);
+                    const onMouseMove = (moveEvent) => {
+                      handleHueChange(moveEvent.clientY);
+                    };
+                    const onMouseUp = () => {
+                      window.removeEventListener("mousemove", onMouseMove);
+                      window.removeEventListener("mouseup", onMouseUp);
+                    };
+                    window.addEventListener("mousemove", onMouseMove);
+                    window.addEventListener("mouseup", onMouseUp);
+                  }}
+                >
+                  <div
+                    className="absolute left-0 right-0 h-6 -translate-y-1/2"
+                    style={{ top: `${(hsv.h / 360) * 100}%` }}
                   >
-                    Apply
-                  </motion.button>
-                </motion.div>
-              </>
+                    <div className="mx-auto h-0.5 w-full bg-black/30" />
+                  </div>
+                </div>
+
+                {/* Color preview */}
+                <div className="mb-3 flex items-center gap-2">
+                  <div
+                    className="h-10 w-10 rounded-xl border border-neutral-200 shadow-sm"
+                    style={{ backgroundColor: value }}
+                  />
+                  <input
+                    type="text"
+                    value={value.toUpperCase()}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (/^#[0-9A-F]{0,6}$/i.test(val)) {
+                        onChange(val);
+                        if (val.length === 7) {
+                          setHsv(rgbToHsv(...Object.values(hexToRgb(val))));
+                        }
+                      }
+                    }}
+                    className="flex-1 rounded-xl border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm font-mono uppercase outline-none focus:border-black focus:ring-2 focus:ring-black/10"
+                  />
+                </div>
+
+                {/* RGB inputs */}
+                <div className="mb-3 grid grid-cols-3 gap-2">
+                  {["R", "G", "B"].map((channel, i) => (
+                    <div key={channel} className="relative">
+                      <label className="mb-1 block text-[10px] font-medium text-neutral-500">{channel}</label>
+                      <input
+                        type="number"
+                        min={0}
+                        max={255}
+                        value={i === 0 ? currentRgb.r : i === 1 ? currentRgb.g : currentRgb.b}
+                        onChange={(e) => {
+                          const val = Math.max(0, Math.min(255, parseInt(e.target.value) || 0));
+                          const rgb = i === 0 ? { r: val, g: currentRgb.g, b: currentRgb.b }
+                            : i === 1 ? { r: currentRgb.r, g: val, b: currentRgb.b }
+                            : { r: currentRgb.r, g: currentRgb.g, b: val };
+                          onChange(rgbToHex(rgb.r, rgb.g, rgb.b));
+                          setHsv(rgbToHsv(rgb.r, rgb.g, rgb.b));
+                        }}
+                        className="w-full rounded-lg border border-neutral-200 bg-neutral-50 px-2 py-1.5 text-xs tabular-nums outline-none focus:border-black focus:ring-1 focus:ring-black"
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                {/* Close button */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  onClick={() => setPickerOpen(false)}
+                  className="w-full rounded-xl bg-black px-3 py-2 text-xs font-medium text-white transition hover:bg-neutral-800"
+                >
+                  Done
+                </motion.button>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
