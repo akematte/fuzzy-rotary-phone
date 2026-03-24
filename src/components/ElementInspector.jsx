@@ -12,6 +12,7 @@ import {
   X
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 const COLOR_PRESETS = [
   { value: "#fef08a", name: "Yellow" },
@@ -148,7 +149,7 @@ function ColorPicker({ value, onChange, label }) {
             }`}
             title="Custom color"
           />
-          {pickerOpen && (
+          {typeof window !== 'undefined' && pickerOpen && createPortal(
             <div
               ref={pickerRef}
               className="fixed z-[9999] w-52 rounded-2xl border-4 border-red-500 bg-white p-3 shadow-xl"
@@ -227,7 +228,9 @@ function ColorPicker({ value, onChange, label }) {
                   Done
                 </motion.button>
               </div>
-            )}
+            </div>,
+            document.body
+          )}
         </div>
         
         {COLOR_PRESETS.map((color) => (
