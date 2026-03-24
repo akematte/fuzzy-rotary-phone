@@ -59,15 +59,23 @@ function ColorPicker({ value, onChange, label }) {
   }, [value]);
 
   useEffect(() => {
+    if (!pickerOpen) return;
+    
     const handleClickOutside = (e) => {
       if (pickerRef.current && !pickerRef.current.contains(e.target)) {
         setPickerOpen(false);
       }
     };
-    if (pickerOpen) {
+    
+    // Use setTimeout to avoid the initial button click triggering the close
+    const timeoutId = setTimeout(() => {
       document.addEventListener("mousedown", handleClickOutside);
-    }
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, 0);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, [pickerOpen]);
 
   const hsvToRgb = (h, s, v) => {
@@ -101,24 +109,30 @@ function ColorPicker({ value, onChange, label }) {
 
   const handleClick = (e) => {
     e.stopPropagation();
+    console.log('Color picker clicked!');
     const button = e.currentTarget;
     const rect = button.getBoundingClientRect();
     const pickerWidth = 208;
     const pickerHeight = 280;
     const margin = 8;
-    
+
     let x = rect.left;
     let y = rect.bottom + margin;
-    
+
     if (x + pickerWidth > window.innerWidth) {
       x = window.innerWidth - pickerWidth - margin;
     }
     if (y + pickerHeight > window.innerHeight) {
       y = rect.top - pickerHeight - margin;
     }
-    
+
+    console.log('Setting position:', { x: Math.max(margin, x), y: Math.max(margin, y) });
     setPosition({ x: Math.max(margin, x), y: Math.max(margin, y) });
-    setPickerOpen((prev) => !prev);
+    setPickerOpen((prev) => {
+      const newVal = !prev;
+      console.log('Picker open:', newVal);
+      return newVal;
+    });
   };
 
   return (
