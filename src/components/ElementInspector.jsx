@@ -61,24 +61,19 @@ function ColorPicker({ value, onChange, label }) {
   useEffect(() => {
     if (!pickerOpen) return;
 
-    let timeoutId = null;
-    let enabled = false;
-
     const handleClickOutside = (e) => {
-      if (!enabled) return;
       if (pickerRef.current && !pickerRef.current.contains(e.target)) {
         setPickerOpen(false);
       }
     };
 
-    // Delay enabling the click outside handler
-    timeoutId = setTimeout(() => {
-      enabled = true;
+    // Delay enabling to prevent immediate close from button click
+    const timeoutId = setTimeout(() => {
       document.addEventListener("mousedown", handleClickOutside);
-    }, 100);
+    }, 150);
 
     return () => {
-      if (timeoutId) clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [pickerOpen]);
@@ -114,8 +109,7 @@ function ColorPicker({ value, onChange, label }) {
 
   const handleClick = (e) => {
     e.stopPropagation();
-    const button = e.currentTarget;
-    const rect = button.getBoundingClientRect();
+    const rect = e.currentTarget.getBoundingClientRect();
     const pickerWidth = 208;
     const pickerHeight = 280;
     const margin = 8;
@@ -123,14 +117,20 @@ function ColorPicker({ value, onChange, label }) {
     let x = rect.left;
     let y = rect.bottom + margin;
 
+    // Check if picker would go off right edge
     if (x + pickerWidth > window.innerWidth) {
       x = window.innerWidth - pickerWidth - margin;
     }
+    // Check if picker would go off bottom edge
     if (y + pickerHeight > window.innerHeight) {
       y = rect.top - pickerHeight - margin;
     }
 
-    setPosition({ x: Math.max(margin, x), y: Math.max(margin, y) });
+    // Ensure positive values
+    x = Math.max(margin, x);
+    y = Math.max(margin, y);
+
+    setPosition({ x, y });
     setPickerOpen(true);
   };
 
@@ -152,14 +152,10 @@ function ColorPicker({ value, onChange, label }) {
             title="Custom color"
           />
           {pickerOpen && (
-            <motion.div
+            <div
               ref={pickerRef}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
-              className="fixed z-50 w-52 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl"
-              style={{ left: position.x, top: position.y }}
+              className="fixed z-[100] w-52 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl"
+              style={{ left: `${position.x}px`, top: `${position.y}px` }}
               onMouseDown={(e) => e.stopPropagation()}
             >
                 <div
@@ -232,7 +228,7 @@ function ColorPicker({ value, onChange, label }) {
                 >
                   Done
                 </motion.button>
-              </motion.div>
+              </div>
             )}
         </div>
         
