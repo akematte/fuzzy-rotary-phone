@@ -12,7 +12,6 @@ import {
   X
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 
 const COLOR_PRESETS = [
   { value: "#fef08a", name: "Yellow" },
@@ -35,13 +34,10 @@ function ColorPicker({ value, onChange, label }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [hsv, setHsv] = useState({ h: 0, s: 100, v: 100 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
-  const pickerRef = useRef(null);
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    // Handle non-hex values like "transparent"
-    if (!value.startsWith("#")) {
-      return;
-    }
+    if (!value.startsWith("#")) return;
     const hex = value.replace("#", "");
     const r = parseInt(hex.substr(0, 2), 16) / 255;
     const g = parseInt(hex.substr(2, 2), 16) / 255;
@@ -56,41 +52,28 @@ function ColorPicker({ value, onChange, label }) {
         case b: h = ((r - g) / d + 4) / 6; break;
       }
     }
-    setHsv({
-      h: h * 360,
-      s: max === 0 ? 0 : (d / max) * 100,
-      v: max * 100
-    });
+    setHsv({ h: h * 360, s: max === 0 ? 0 : (d / max) * 100, v: max * 100 });
   }, [value]);
 
   useEffect(() => {
     if (!pickerOpen) return;
-
     const handleClickOutside = (e) => {
-      if (pickerRef.current && !pickerRef.current.contains(e.target)) {
+      if (containerRef.current && !containerRef.current.contains(e.target)) {
         setPickerOpen(false);
       }
     };
-
-    // Delay enabling to prevent immediate close from button click
-    const timeoutId = setTimeout(() => {
-      document.addEventListener("mousedown", handleClickOutside);
-    }, 150);
-
-    return () => {
-      clearTimeout(timeoutId);
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    setTimeout(() => document.addEventListener("mousedown", handleClickOutside), 100);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [pickerOpen]);
 
   const hsvToRgb = (h, s, v) => {
     h /= 360; s /= 100; v /= 100;
-    let r, g, b;
     const i = Math.floor(h * 6);
     const f = h * 6 - i;
     const p = v * (1 - s);
     const q = v * (1 - f * s);
     const t = v * (1 - (1 - f) * s);
+    let r, g, b;
     switch (i % 6) {
       case 0: r = v; g = t; b = p; break;
       case 1: r = q; g = v; b = p; break;
@@ -98,6 +81,7 @@ function ColorPicker({ value, onChange, label }) {
       case 3: r = p; g = q; b = v; break;
       case 4: r = t; g = p; b = v; break;
       case 5: r = v; g = p; b = q; break;
+      default: r = 0; g = 0; b = 0;
     }
     return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
   };
@@ -105,35 +89,19 @@ function ColorPicker({ value, onChange, label }) {
   const updateColor = (newHsv) => {
     setHsv(newHsv);
     const rgb = hsvToRgb(newHsv.h, newHsv.s, newHsv.v);
-    const hex = "#" + [rgb.r, rgb.g, rgb.b].map(x => {
-      const hex = x.toString(16);
-      return hex.length === 1 ? "0" + hex : hex;
-    }).join("");
+    const hex = "#" + [rgb.r, rgb.g, rgb.b].map(x => x.toString(16).padStart(2, "0")).join("");
     onChange(hex);
   };
 
   const handleClick = (e) => {
     e.stopPropagation();
-    console.log('!!! COLOR PICKER CLICKED !!!');
-    console.log('Current pickerOpen:', pickerOpen);
-    console.log('Position before:', position);
-    
-    // Open picker at cursor position (top-left of cursor)
-    const x = e.clientX - 220; // picker width + margin
-    const y = e.clientY - 290; // picker height + margin
-
-    const newPos = {
-      x: Math.max(8, x),
-      y: Math.max(8, y)
-    };
-    console.log('New position:', newPos);
-    setPosition(newPos);
+    const rect = e.currentTarget.getBoundingClientRect();
+    setPosition({ x: rect.left, y: rect.bottom + 8 });
     setPickerOpen(true);
-    console.log('Should be open now!');
   };
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2" ref={containerRef}>
       <span className="text-xs font-medium text-neutral-600">{label}</span>
       <div className="flex flex-wrap items-center gap-1.5">
         <motion.button
@@ -142,95 +110,53 @@ function ColorPicker({ value, onChange, label }) {
           whileTap={{ scale: 0.98 }}
           onClick={handleClick}
           className={`h-8 w-8 rounded-xl border-2 bg-gradient-to-br from-red-500 via-yellow-500 via-green-500 via-cyan-500 to-blue-500 transition-colors ${
-            !COLOR_PRESETS.some((c) => c.value === value)
-              ? "ring-2 ring-black/20 shadow-md"
-              : "border-neutral-200"
+            !COLOR_PRESETS.some((c) => c.value === value) ? "ring-2 ring-black/20 shadow-md" : "border-neutral-200"
           }`}
           title="Custom color"
         />
-        {typeof window !== 'undefined' && pickerOpen && createPortal(
-          <div
-            ref={pickerRef}
-            className="fixed z-[9999] w-52 rounded-2xl border-4 border-red-500 bg-white p-3 shadow-xl"
-            style={{ left: `${position.x}px`, top: `${position.y}px`, backgroundColor: 'white' }}
-            onMouseDown={(e) => e.stopPropagation()}
-          >
-            <div className="text-red-500 font-bold text-sm mb-2">PICKER IS OPEN!</div>
-                <div
-                  className="relative mb-3 h-36 w-full cursor-crosshair overflow-hidden rounded-xl"
-                  style={{
-                    backgroundColor: `hsl(${hsv.h}, 100%, 50%)`,
-                    backgroundImage: `linear-gradient(to right, white, transparent), linear-gradient(to top, black, transparent)`
-                  }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const s = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
-                    const v = Math.max(0, Math.min(100, 100 - ((e.clientY - rect.top) / rect.height) * 100));
-                    updateColor({ ...hsv, s, v });
-                    const onMove = (moveEvent) => {
-                      const s2 = Math.max(0, Math.min(100, ((moveEvent.clientX - rect.left) / rect.width) * 100));
-                      const v2 = Math.max(0, Math.min(100, 100 - ((moveEvent.clientY - rect.top) / rect.height) * 100));
-                      updateColor({ ...hsv, s: s2, v: v2 });
-                    };
-                    const onUp = () => {
-                      window.removeEventListener("mousemove", onMove);
-                      window.removeEventListener("mouseup", onUp);
-                    };
-                    window.addEventListener("mousemove", onMove);
-                    window.addEventListener("mouseup", onUp);
-                  }}
-                >
-                  <div
-                    className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-md"
-                    style={{ left: `${hsv.s}%`, top: `${100 - hsv.v}%` }}
-                  />
-                </div>
-
-                <div
-                  className="relative mb-3 h-3 w-full cursor-pointer overflow-hidden rounded-full"
-                  style={{ background: "linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)" }}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const h = Math.max(0, Math.min(360, ((e.clientX - rect.left) / rect.width) * 360));
-                    updateColor({ ...hsv, h });
-                    const onMove = (moveEvent) => {
-                      const h2 = Math.max(0, Math.min(360, ((moveEvent.clientX - rect.left) / rect.width) * 360));
-                      updateColor({ ...hsv, h: h2 });
-                    };
-                    const onUp = () => {
-                      window.removeEventListener("mousemove", onMove);
-                      window.removeEventListener("mouseup", onUp);
-                    };
-                    window.addEventListener("mousemove", onMove);
-                    window.addEventListener("mouseup", onUp);
-                  }}
-                >
-                  <div
-                    className="absolute top-0 h-full w-1 -translate-x-1/2 rounded-full bg-white shadow-md"
-                    style={{ left: `${(hsv.h / 360) * 100}%` }}
-                  />
-                </div>
-
-                <div className="mb-3 flex items-center gap-2">
-                  <div className="h-8 w-8 flex-1 rounded-lg border border-neutral-200" style={{ backgroundColor: value }} />
-                  <span className="w-20 text-xs font-mono text-neutral-600">{value.toUpperCase()}</span>
-                </div>
-
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  onClick={() => setPickerOpen(false)}
-                  className="w-full rounded-xl bg-black px-3 py-2 text-xs font-medium text-white transition hover:bg-neutral-800"
-                >
-                  Done
-                </motion.button>
-              </div>
-            </div>,
-            document.body
-          )}
-
+        {pickerOpen && (
+          <div className="fixed z-[9999] w-52 rounded-2xl border-4 border-red-500 bg-white p-3 shadow-xl" style={{ left: position.x, top: position.y }}>
+            <div className="mb-2 text-red-600 font-bold text-xs">OPEN!</div>
+            <div className="relative mb-3 h-32 w-full cursor-crosshair rounded-xl" style={{ backgroundColor: `hsl(${hsv.h}, 100%, 50%)`, backgroundImage: "linear-gradient(to right, white, transparent), linear-gradient(to top, black, transparent)" }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                const rect = e.currentTarget.getBoundingClientRect();
+                const s = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+                const v = Math.max(0, Math.min(100, 100 - ((e.clientY - rect.top) / rect.height) * 100));
+                updateColor({ ...hsv, s, v });
+                const onMove = (m) => {
+                  const s2 = Math.max(0, Math.min(100, ((m.clientX - rect.left) / rect.width) * 100));
+                  const v2 = Math.max(0, Math.min(100, 100 - ((m.clientY - rect.top) / rect.height) * 100));
+                  updateColor({ ...hsv, s: s2, v: v2 });
+                };
+                const onUp = () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+                window.addEventListener("mousemove", onMove);
+                window.addEventListener("mouseup", onUp);
+              }}
+            >
+              <div className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white" style={{ left: `${hsv.s}%`, top: `${100 - hsv.v}%` }} />
+            </div>
+            <div className="relative mb-3 h-3 w-full cursor-pointer rounded-full" style={{ background: "linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00)" }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                const rect = e.currentTarget.getBoundingClientRect();
+                const h = Math.max(0, Math.min(360, ((e.clientX - rect.left) / rect.width) * 360));
+                updateColor({ ...hsv, h });
+                const onMove = (m) => { const h2 = Math.max(0, Math.min(360, ((m.clientX - rect.left) / rect.width) * 360)); updateColor({ ...hsv, h: h2 }); };
+                const onUp = () => { window.removeEventListener("mousemove", onMove); window.removeEventListener("mouseup", onUp); };
+                window.addEventListener("mousemove", onMove);
+                window.addEventListener("mouseup", onUp);
+              }}
+            >
+              <div className="absolute top-0 h-full w-1 -translate-x-1/2 rounded-full bg-white" style={{ left: `${(hsv.h / 360) * 100}%` }} />
+            </div>
+            <div className="mb-3 flex items-center gap-2">
+              <div className="h-8 w-8 flex-1 rounded-lg border" style={{ backgroundColor: value }} />
+              <span className="w-20 text-xs font-mono">{value.toUpperCase()}</span>
+            </div>
+            <button onClick={() => setPickerOpen(false)} className="w-full rounded-xl bg-black px-3 py-2 text-xs font-medium text-white">Done</button>
+          </div>
+        )}
         {COLOR_PRESETS.map((color) => (
           <motion.button
             key={color.value}
@@ -238,11 +164,7 @@ function ColorPicker({ value, onChange, label }) {
             onClick={() => onChange(color.value)}
             whileHover={{ scale: 1.04 }}
             whileTap={{ scale: 0.98 }}
-            className={`h-8 w-8 rounded-xl border transition-colors ${
-              value === color.value
-                ? "border-black ring-2 ring-black/20 shadow-md"
-                : "border-neutral-200"
-            }`}
+            className={`h-8 w-8 rounded-xl border transition-colors ${value === color.value ? "border-black ring-2 ring-black/20 shadow-md" : "border-neutral-200"}`}
             style={{ backgroundColor: color.value }}
             title={color.name}
           />
