@@ -95,8 +95,8 @@ function ColorPicker({ value, onChange, label }) {
 
   const handleClick = (e) => {
     e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    setPosition({ x: rect.left, y: rect.bottom + 8 });
+    // Position at top-right of cursor
+    setPosition({ x: e.clientX + 10, y: e.clientY - 290 });
     setPickerOpen(true);
   };
 
@@ -128,8 +128,7 @@ function ColorPicker({ value, onChange, label }) {
         ))}
       </div>
       {typeof window !== 'undefined' && pickerOpen && createPortal(
-        <div className="color-picker-portal fixed z-[9999] w-52 rounded-2xl border-4 border-red-500 bg-white p-3 shadow-xl" style={{ left: position.x, top: position.y }}>
-          <div className="mb-2 text-red-600 font-bold text-xs">OPEN!</div>
+        <div className="color-picker-portal fixed z-[9999] w-52 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl" style={{ left: position.x, top: position.y }}>
           <div className="relative mb-3 h-32 w-full cursor-crosshair rounded-xl" style={{ backgroundColor: `hsl(${hsv.h}, 100%, 50%)`, backgroundImage: "linear-gradient(to right, white, transparent), linear-gradient(to top, black, transparent)" }}
             onMouseDown={(e) => {
               e.preventDefault();
