@@ -33,6 +33,7 @@ function SectionTitle({ children }) {
 function ColorPicker({ value, onChange, label }) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [hsv, setHsv] = useState({ h: 0, s: 100, v: 100 });
+  const [position, setPosition] = useState({ x: 0, y: 0 });
   const pickerRef = useRef(null);
 
   useEffect(() => {
@@ -98,6 +99,26 @@ function ColorPicker({ value, onChange, label }) {
     onChange(hex);
   };
 
+  const handleClick = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const pickerWidth = 208;
+    const pickerHeight = 280;
+    const margin = 8;
+    
+    let x = rect.left;
+    let y = rect.bottom + margin;
+    
+    if (x + pickerWidth > window.innerWidth) {
+      x = window.innerWidth - pickerWidth - margin;
+    }
+    if (y + pickerHeight > window.innerHeight) {
+      y = rect.top - pickerHeight - margin;
+    }
+    
+    setPosition({ x, y });
+    setPickerOpen(true);
+  };
+
   return (
     <div className="flex flex-col gap-2">
       <span className="text-xs font-medium text-neutral-600">{label}</span>
@@ -107,7 +128,7 @@ function ColorPicker({ value, onChange, label }) {
             type="button"
             whileHover={{ scale: 1.15 }}
             whileTap={{ scale: 0.9 }}
-            onClick={() => setPickerOpen(!pickerOpen)}
+            onClick={handleClick}
             className={`h-8 w-8 rounded-xl border-2 bg-gradient-to-br from-red-500 via-yellow-500 via-green-500 via-cyan-500 to-blue-500 transition-all duration-150 ${
               !COLOR_PRESETS.some((c) => c.value === value)
                 ? "ring-2 ring-black/20 shadow-md"
@@ -118,11 +139,12 @@ function ColorPicker({ value, onChange, label }) {
           <AnimatePresence>
             {pickerOpen && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: -8 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
-                className="absolute left-0 top-full z-50 mt-2 w-52 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl"
+                className="fixed z-50 w-52 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl"
+                style={{ left: position.x, top: position.y }}
               >
                 <div
                   className="relative mb-3 h-36 w-full cursor-crosshair overflow-hidden rounded-xl"
