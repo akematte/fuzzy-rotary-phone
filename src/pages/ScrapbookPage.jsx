@@ -36,6 +36,8 @@ export default function ScrapbookPage() {
     duplicateElement,
     bringElementToFront,
     sendElementToBack,
+    deletePage,
+    renamePage,
     undo,
     redo
   } = useScrapbookStore();
@@ -157,6 +159,8 @@ export default function ScrapbookPage() {
           collapsed={sidebarCollapsed}
           onNewPage={createPage}
           onSelectPage={setActivePage}
+          onDeletePage={deletePage}
+          onRenamePage={renamePage}
         />
       </div>
     </>

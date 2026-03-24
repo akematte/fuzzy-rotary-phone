@@ -1,7 +1,20 @@
 import { motion } from "framer-motion";
 import { Plus } from "lucide-react";
+import { useState } from "react";
+import PageContextMenu from "./PageContextMenu";
 
-export default function Sidebar({ pages, activePageId, collapsed, onNewPage, onSelectPage }) {
+export default function Sidebar({ pages, activePageId, collapsed, onNewPage, onSelectPage, onDeletePage, onRenamePage }) {
+  const [contextMenu, setContextMenu] = useState(null);
+
+  const handlePageContextMenu = (e, page) => {
+    e.preventDefault();
+    setContextMenu({
+      x: e.clientX,
+      y: e.clientY,
+      page
+    });
+  };
+
   return (
     <>
       <motion.button
@@ -23,6 +36,7 @@ export default function Sidebar({ pages, activePageId, collapsed, onNewPage, onS
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               onClick={() => onSelectPage(page.id)}
+              onContextMenu={(e) => handlePageContextMenu(e, page)}
               className={`flex w-full items-center rounded-xl border px-3 py-2 text-left text-sm transition ${
                 active ? "border-black bg-black text-white" : "border-transparent bg-neutral-100 text-black hover:border-neutral-200"
               }`}
@@ -32,6 +46,16 @@ export default function Sidebar({ pages, activePageId, collapsed, onNewPage, onS
           );
         })}
       </div>
+
+      {contextMenu && (
+        <PageContextMenu
+          page={contextMenu.page}
+          position={{ x: contextMenu.x, y: contextMenu.y }}
+          onClose={() => setContextMenu(null)}
+          onDelete={onDeletePage}
+          onRename={onRenamePage}
+        />
+      )}
     </>
   );
 }

@@ -8,7 +8,8 @@ import {
   SlidersHorizontal,
   Square,
   Triangle,
-  Type
+  Type,
+  X
 } from "lucide-react";
 
 const COLOR_PRESETS = [
@@ -68,7 +69,7 @@ const SHAPE_TYPES = [
   { id: "diamond", label: "Diamond", Icon: Diamond }
 ];
 
-export default function ElementInspector({ element, onPatchStyle, onSetShape }) {
+export default function ElementInspector({ element, onPatchStyle, onSetShape, onClose }) {
   const st = element?.style ?? {};
 
   return (
@@ -89,6 +90,13 @@ export default function ElementInspector({ element, onPatchStyle, onSetShape }) 
             <span className="ml-auto rounded-full bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
               {element.type}
             </span>
+            <button
+              type="button"
+              onClick={onClose}
+              className="ml-2 rounded-lg p-1.5 text-neutral-400 transition hover:bg-neutral-100 hover:text-neutral-600"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
 
           {element.type === "shape" && (

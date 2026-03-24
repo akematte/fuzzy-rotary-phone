@@ -122,6 +122,21 @@ export const useScrapbookStore = create((set, get) => {
     setCanvasBackground: (background) =>
       get().commit(() => ({ canvasBackground: background })),
 
+    deletePage: (pageId) =>
+      get().commit((state) => {
+        const newPages = state.pages.filter((p) => p.id !== pageId);
+        return {
+          pages: newPages,
+          activePageId: state.activePageId === pageId ? (newPages[0]?.id ?? null) : state.activePageId,
+          selectedElementId: null
+        };
+      }),
+
+    renamePage: (pageId, name) =>
+      get().commit((state) => ({
+        pages: updatePageById(state.pages, pageId, (p) => ({ ...p, name }))
+      })),
+
     deleteElement: (elementId) =>
       get().commit((state) => ({
         pages: updatePageById(state.pages, state.activePageId, (p) => ({
