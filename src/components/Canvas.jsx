@@ -109,13 +109,11 @@ export default function Canvas({
 
   return (
     <div className="relative h-full overflow-hidden" style={{ backgroundColor: bg.color }} onMouseDown={handlePanMouseDown} onContextMenu={handleCanvasContextMenu}>
-      <div
-        style={{ 
-          transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`,
-          transformOrigin: '0 0',
-          ...patternStyle
-        }}
+      <motion.div
+        animate={{ x: pan.x, y: pan.y, scale: zoom }}
+        transition={{ type: "spring", stiffness: 400, damping: 30, mass: 0.5 }}
         className={`relative h-[2200px] w-[3200px] ${panning ? "cursor-grabbing" : "cursor-default"}`}
+        style={patternStyle}
       >
         {(page?.elements ?? []).map((element) => (
           <div key={element.id} data-element data-element-id={element.id} className="absolute left-0 top-0">
