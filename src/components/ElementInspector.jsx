@@ -151,18 +151,17 @@ function ColorPicker({ value, onChange, label }) {
             }`}
             title="Custom color"
           />
-          <AnimatePresence>
-            {pickerOpen && (
-              <motion.div
-                ref={pickerRef}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
-                className="fixed z-50 w-52 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl"
-                style={{ left: position.x, top: position.y }}
-                onMouseDown={(e) => e.stopPropagation()}
-              >
+          {pickerOpen && (
+            <motion.div
+              ref={pickerRef}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.12, ease: [0.16, 1, 0.3, 1] }}
+              className="fixed z-50 w-52 rounded-2xl border border-neutral-200 bg-white p-3 shadow-xl"
+              style={{ left: position.x, top: position.y }}
+              onMouseDown={(e) => e.stopPropagation()}
+            >
                 <div
                   className="relative mb-3 h-36 w-full cursor-crosshair overflow-hidden rounded-xl"
                   style={{
@@ -235,7 +234,6 @@ function ColorPicker({ value, onChange, label }) {
                 </motion.button>
               </motion.div>
             )}
-          </AnimatePresence>
         </div>
         
         {COLOR_PRESETS.map((color) => (
