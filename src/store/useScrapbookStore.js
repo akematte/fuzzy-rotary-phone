@@ -43,8 +43,8 @@ const createShapeElement = () => ({
   style: {
     shape: "rectangle",
     fill: "#fde68a",
-    stroke: "#292524",
-    strokeWidth: 2,
+    stroke: "transparent",
+    strokeWidth: 0,
     borderRadius: 24,
     opacity: 1,
     shadow: true

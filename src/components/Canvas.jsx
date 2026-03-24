@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { Minus, Plus, RotateCcw } from "lucide-react";
 import Element from "./Element";
 import ElementInspector from "./ElementInspector";
 import ElementContextMenu from "./ElementContextMenu";
@@ -39,6 +40,7 @@ export default function Canvas({
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [panning, setPanning] = useState(false);
   const [contextMenu, setContextMenu] = useState(null);
+  const [zoom, setZoom] = useState(1);
 
   const bg = canvasBackground ?? { color: "#ffffff", pattern: "grid" };
   const patternStyle = patternStyles[bg.pattern] ?? patternStyles.grid;
@@ -80,10 +82,29 @@ export default function Canvas({
     }
   };
 
+  const handleZoomIn = () => setZoom((z) => Math.min(z + 0.1, 2));
+  const handleZoomOut = () => setZoom((z) => Math.max(z - 0.1, 0.5));
+  const handleReset = () => {
+    setZoom(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  // Handle escape key to deselect
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onSelect(null);
+        setContextMenu(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onSelect]);
+
   return (
     <div className="relative h-full overflow-hidden" style={{ backgroundColor: bg.color }} onMouseDown={handlePanMouseDown} onContextMenu={handleCanvasContextMenu}>
       <motion.div
-        animate={{ x: pan.x, y: pan.y }}
+        animate={{ x: pan.x, y: pan.y, scale: zoom }}
         transition={{
           type: "spring",
           stiffness: panning ? 620 : 280,
@@ -122,6 +143,37 @@ export default function Canvas({
           onSendToBack={onSendToBack}
         />
       )}
+
+      {/* Zoom controls */}
+      <div className="absolute bottom-4 right-4 z-20 flex items-center gap-1 rounded-xl border border-neutral-200 bg-white p-1.5 shadow-lg">
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleZoomOut}
+          className="rounded-lg p-2 text-neutral-600 transition hover:bg-neutral-100"
+          title="Zoom out"
+        >
+          <Minus className="h-4 w-4" />
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleReset}
+          className="rounded-lg p-2 text-neutral-600 transition hover:bg-neutral-100"
+          title="Reset view"
+        >
+          <RotateCcw className="h-4 w-4" />
+        </motion.button>
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          onClick={handleZoomIn}
+          className="rounded-lg p-2 text-neutral-600 transition hover:bg-neutral-100"
+          title="Zoom in"
+        >
+          <Plus className="h-4 w-4" />
+        </motion.button>
+      </div>
     </div>
   );
 }

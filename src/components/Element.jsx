@@ -7,7 +7,7 @@ const GRID = 12;
 const snap = (value) => Math.round(value / GRID) * GRID;
 
 const morphEase = [0.33, 0, 0.2, 1];
-const morphDuration = 0.48;
+const morphDuration = 0.35;
 
 const colorTween = { type: "spring", stiffness: 320, damping: 28 };
 
@@ -16,8 +16,8 @@ function ShapeContent({ element }) {
   const kind = st.shape ?? "rectangle";
   const isPoly = kind === "triangle" || kind === "diamond";
   const fill = st.fill ?? "#fde68a";
-  const stroke = st.stroke ?? "#292524";
-  const sw = st.strokeWidth ?? 2;
+  const stroke = st.stroke ?? "transparent";
+  const sw = st.strokeWidth ?? 0;
   const opacity = st.opacity ?? 1;
   const r = st.borderRadius ?? 16;
   const shadow = st.shadow !== false;
@@ -30,8 +30,9 @@ function ShapeContent({ element }) {
   return (
     <div className="relative h-full w-full">
       <motion.div
+        key={`shape-${kind}`}
         className="absolute inset-0 flex items-stretch"
-        initial={false}
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{
           opacity: isPoly ? 0 : 1,
           scale: isPoly ? 0.92 : 1
@@ -63,8 +64,9 @@ function ShapeContent({ element }) {
       </motion.div>
 
       <motion.div
+        key={`poly-${kind}`}
         className="absolute inset-0"
-        initial={false}
+        initial={{ opacity: 0, scale: 0.95 }}
         animate={{
           opacity: isPoly ? 1 : 0,
           scale: isPoly ? 1 : 0.92
@@ -80,7 +82,6 @@ function ShapeContent({ element }) {
         >
           {(kind === "triangle" || kind === "diamond") && (
             <motion.polygon
-              key={kind}
               points={points}
               vectorEffect="nonScalingStroke"
               strokeLinejoin="round"
