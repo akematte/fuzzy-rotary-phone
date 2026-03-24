@@ -109,28 +109,14 @@ function ColorPicker({ value, onChange, label }) {
 
   const handleClick = (e) => {
     e.stopPropagation();
-    const rect = e.currentTarget.getBoundingClientRect();
-    const pickerWidth = 208;
-    const pickerHeight = 280;
-    const margin = 8;
-
-    let x = rect.left;
-    let y = rect.bottom + margin;
-
-    // Check if picker would go off right edge
-    if (x + pickerWidth > window.innerWidth) {
-      x = window.innerWidth - pickerWidth - margin;
-    }
-    // Check if picker would go off bottom edge
-    if (y + pickerHeight > window.innerHeight) {
-      y = rect.top - pickerHeight - margin;
-    }
-
-    // Ensure positive values
-    x = Math.max(margin, x);
-    y = Math.max(margin, y);
-
-    setPosition({ x, y });
+    // Open picker at cursor position (top-left of cursor)
+    const x = e.clientX - 220; // picker width + margin
+    const y = e.clientY - 290; // picker height + margin
+    
+    setPosition({ 
+      x: Math.max(8, x), 
+      y: Math.max(8, y) 
+    });
     setPickerOpen(true);
   };
 
